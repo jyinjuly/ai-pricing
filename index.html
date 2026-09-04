@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>模型定价对比</title>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #f5f7fa;
+    color: #1f2329;
+    padding: 32px 24px;
+  }
+  /* 宽屏拉宽：92% 视口宽，上限 1760px */
+  .container { width: min(92%, 1760px); margin: 0 auto; }
+  header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-bottom: 8px; }
+  h1 { font-size: 24px; font-weight: 600; }
+  .controls { display: flex; gap: 12px; flex-wrap: wrap; }
+  .toggle {
+    display: inline-flex; background: #e8ebf0; border-radius: 10px; padding: 4px;
+  }
+  .toggle button {
+    border: none; background: transparent; padding: 8px 24px; font-size: 14px;
+    border-radius: 8px; cursor: pointer; color: #5f6368; transition: all .2s;
+    font-family: inherit;
+  }
+  .toggle button.active { background: #fff; color: #1456f0; font-weight: 600; box-shadow: 0 1px 4px rgba(0,0,0,.12); }
+  .note { font-size: 13px; color: #8a8f99; margin-bottom: 16px; }
+  .note .warn { color: #d93026; font-weight: 600; }
+  .group { margin-top: 28px; }
+  .group-head {
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 12px; margin-bottom: 6px;
+  }
+  .group-head h2 { font-size: 18px; font-weight: 600; }
+  .group-title { display: flex; align-items: baseline; gap: 10px; }
+  .group-title a { font-size: 12px; color: #1456f0; text-decoration: none; }
+  .group-title a:hover { text-decoration: underline; }
+  .grid {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+  /* 类目多的组（如 Qwen）通栏展示，避免 X 轴拥挤 */
+  .grid.stack { grid-template-columns: 1fr; }
+  /* 窄屏降级：两列 / 单列 */
+  @media (max-width: 1200px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 760px) { .grid { grid-template-columns: 1fr; } }
+  .card {
+    background: #fff; border-radius: 12px; padding: 20px;
+    box-shadow: 0 1px 4px rgba(0,0,0,.06);
+  }
+  .card h3 { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+  .chart { width: 100%; height: 260px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>模型定价对比</h1>
+    <div class="controls">
+      <div class="toggle">
+        <button id="btnBar" class="active">柱状图</button>
+        <button id="btnLine">折线图</button>
+      </div>
+    </div>
+  </header>
+  <p class="note">价格单位：元 / 百万 tokens（￥/MTok）</p>
+
+  <section class="group">
+    <div class="group-head">
+      <div class="group-title">
+        <h2>DeepSeek 系列</h2>
+        <a href="https://api-docs.deepseek.com/zh-cn/quick_start/pricing/" target="_blank" rel="noopener">官方来源</a>
+      </div>
+      <div class="toggle">
+        <button id="btnOff" class="active">空闲时段</button>
+        <button id="btnPeak">高峰时段</button>
+      </div>
+    </div>
+    <p class="note">高峰时段：北京时间周一至周五 9:00–12:00、14:00–18:00，其余为空闲时段（空闲价为高峰价的一半）</p>
+    <div class="grid">
+      <div class="card">
+        <h3>输入（缓存命中）</h3>
+        <div id="chartHit" class="chart"></div>
+      </div>
+      <div class="card">
+        <h3>输入（缓存未命中）</h3>
+        <div id="chartMiss" class="chart"></div>
+      </div>
+      <div class="card">
+        <h3>输出</h3>
+        <div id="chartOut" class="chart"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="group">
+    <div class="group-head">
+      <div class="group-title">
+        <h2>Kimi 系列</h2>
+        <a href="https://platform.kimi.com/docs/pricing/chat" target="_blank" rel="noopener">官方来源</a>
+      </div>
+    </div>
+    <div class="grid">
+      <div class="card">
+        <h3>输入（缓存命中）</h3>
+        <div id="kimiHit" class="chart"></div>
+      </div>
+      <div class="card">
+        <h3>输入（缓存未命中）</h3>
+        <div id="kimiMiss" class="chart"></div>
+      </div>
+      <div class="card">
+        <h3>输出</h3>
+        <div id="kimiOut" class="chart"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="group">
+    <div class="group-head">
+      <div class="group-title">
+        <h2>GLM 系列</h2>
+        <a href="https://bigmodel.cn/pricing" target="_blank" rel="noopener">官方来源</a>
+      </div>
+    </div>
+    <p class="note">GLM-5.3-Flash 所示为限时 5 折价（原价 0.23 / 0.8 / 2.8 元）</p>
+    <div class="grid">
+      <div class="card">
+        <h3>输入（缓存命中）</h3>
+        <div id="glmHit" class="chart"></div>
+      </div>
+      <div class="card">
+        <h3>输入（缓存未命中）</h3>
+        <div id="glmMiss" class="chart"></div>
+      </div>
+      <div class="card">
+        <h3>输出</h3>
+        <div id="glmOut" class="chart"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="group">
+    <div class="group-head">
+      <div class="group-title">
+        <h2>MiniMax 系列</h2>
+        <a href="https://platform.minimax.cn/docs/guides/pricing-paygo" target="_blank" rel="noopener">官方来源</a>
+      </div>
+      <div class="toggle">
+        <button id="btnMmStd" class="active">标准</button>
+        <button id="btnMmPri">优先</button>
+      </div>
+    </div>
+    <p class="note">优先层级按标准价的 1.5 倍计费，M2.7 系列无层级差异；MiniMax-M3 按输入长度分 ≤512k / &gt;512k 两档；<span class="warn">M2.7 系列缓存写入 2.625 元 / 百万 tokens</span></p>
+    <div class="grid">
+      <div class="card">
+        <h3>输入（缓存命中）</h3>
+        <div id="mmHit" class="chart"></div>
+      </div>
+      <div class="card">
+        <h3>输入（缓存未命中）</h3>
+        <div id="mmMiss" class="chart"></div>
+      </div>
+      <div class="card">
+        <h3>输出</h3>
+        <div id="mmOut" class="chart"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="group">
+    <div class="group-head">
+      <div class="group-title">
+        <h2>MiMo 系列</h2>
+        <a href="https://mimo.mi.com/docs/zh-CN/price/pay-as-you-go" target="_blank" rel="noopener">官方来源</a>
+      </div>
+    </div>
+    <div class="grid">
+      <div class="card">
+        <h3>输入（缓存命中）</h3>
+        <div id="mimoHit" class="chart"></div>
+      </div>
+      <div class="card">
+        <h3>输入（缓存未命中）</h3>
+        <div id="mimoMiss" class="chart"></div>
+      </div>
+      <div class="card">
+        <h3>输出</h3>
+        <div id="mimoOut" class="chart"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="group">
+    <div class="group-head">
+      <div class="group-title">
+        <h2>Qwen 系列</h2>
+        <a href="https://platform.qianwenai.com/pricing/api" target="_blank" rel="noopener">官方来源</a>
+      </div>
+    </div>
+    <p class="note">qwen3.7-plus 所示为限时 8 折价；qwen3.7-plus / qwen3.7-flash 按输入长度分档计费</p>
+    <div class="grid stack">
+      <div class="card">
+        <h3>输入（缓存命中）</h3>
+        <div id="qwenHit" class="chart"></div>
+      </div>
+      <div class="card">
+        <h3>输入（缓存未命中）</h3>
+        <div id="qwenMiss" class="chart"></div>
+      </div>
+      <div class="card">
+        <h3>输出</h3>
+        <div id="qwenOut" class="chart"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="group">
+    <div class="group-head">
+      <div class="group-title">
+        <h2>Doubao 系列</h2>
+      </div>
+      <div class="toggle">
+        <button id="btnDbReg" class="active">常规</button>
+        <button id="btnDbLow">低延迟</button>
+      </div>
+    </div>
+    <p class="note">低延迟模式不提供 doubao-seed-evolving / 2.1-pro / 2.0-code（图中留空）；<span class="warn">缓存存储 0.017 元 / 百万 tokens / 小时</span></p>
+    <div class="grid stack">
+      <div class="card">
+        <h3>输入（缓存命中）</h3>
+        <div id="dbHit" class="chart"></div>
+      </div>
+      <div class="card">
+        <h3>输入（缓存未命中）</h3>
+        <div id="dbMiss" class="chart"></div>
+      </div>
+      <div class="card">
+        <h3>输出</h3>
+        <div id="dbOut" class="chart"></div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+const dsModels = ['deepseek-v4-flash', 'deepseek-v4-pro', 'deepseek-v4-flash-vision-exp'];
+const kimiModels = ['kimi-k3', 'kimi-k2.7-code', 'kimi-k2.7-code-highspeed', 'kimi-k2.6'];
+const glmModels = ['GLM-5.3', 'GLM-5.3-Flash', 'GLM-5.2'];
+const mmModels = ['MiniMax-M3 ≤512k', 'MiniMax-M3 >512k', 'MiniMax-M2.7', 'MiniMax-M2.7-highspeed'];
+const mimoModels = ['mimo-v2.5-pro', 'mimo-v2.5'];
+const qwenModels = [
+  'qwen3.8-max-0902', 'qwen3.8-flash', 'qwen3.8-2.4t-a95b',
+  'qwen3.7-plus ≤256k', 'qwen3.7-plus 256k–1m',
+  'qwen3.7-max',
+  'qwen3.7-flash ≤32k', 'qwen3.7-flash 32k–256k', 'qwen3.7-flash 256k–1m'
+];
+const dbModels = [
+  'doubao-seed-evolving ≤1024k', 'doubao-seed-2.1-pro ≤256k', 'doubao-seed-2.1-turbo ≤256k',
+  'doubao-seed-2.0-pro ≤32k', 'doubao-seed-2.0-pro 32-128k', 'doubao-seed-2.0-pro 128-256k',
+  'doubao-seed-2.0-lite ≤32k', 'doubao-seed-2.0-lite 32-128k', 'doubao-seed-2.0-lite 128-256k',
+  'doubao-seed-2.0-mini ≤32k', 'doubao-seed-2.0-mini 32-128k', 'doubao-seed-2.0-mini 128-256k',
+  'doubao-seed-2.0-code ≤32k', 'doubao-seed-2.0-code 32-128k', 'doubao-seed-2.0-code 128-256k'
+];
+
+// DeepSeek 高峰价；空闲价 = 高峰价 × 0.5
+const dsPeakData = {
+  hit:  [0.10, 0.30, 0.10],
+  miss: [3.0,  9.0,  3.0 ],
+  out:  [9.0,  27.0, 9.0 ]
+};
+
+// Kimi 统一价，不分时段
+const kimiData = {
+  hit:  [2.0,  1.3, 2.6,  1.1 ],
+  miss: [20.0, 6.5, 13.0, 6.5 ],
+  out:  [100.0, 27.0, 54.0, 27.0]
+};
+
+// GLM 统一价，不分时段；GLM-5.3-Flash 为限时 5 折价
+const glmData = {
+  hit:  [2.0, 0.115, 2.0 ],
+  miss: [8.0, 0.4,   8.0 ],
+  out:  [28.0, 1.4,  28.0]
+};
+
+// MiniMax 标准价（M3 为永久五折价）；优先层级 = 标准价 × 系数（M3 ×1.5，M2.7 不变）
+const mmStdData = {
+  hit:  [0.42, 0.84,  0.42, 0.42],
+  miss: [2.10, 4.20,  2.1,  4.2 ],
+  out:  [8.40, 16.80, 8.4,  16.8]
+};
+const mmPriFactor = [1.5, 1.5, 1, 1];
+
+// MiMo 统一价，不分时段
+const mimoData = {
+  hit:  [0.025, 0.02],
+  miss: [3.0,   1.0 ],
+  out:  [6.0,   2.0 ]
+};
+
+// Qwen 统一价，不分时段；qwen3.7-plus 为限时 8 折价
+const qwenData = {
+  hit:  [1.5, 0.1, 1.5, 0.32, 0.96, 2.4, 0.04, 0.12, 0.24],
+  miss: [12,  0.8, 12,  1.6,  4.8,  12,  0.2,  0.6,  1.2 ],
+  out:  [36,  2.7, 36,  6.4,  19.2, 36,  0.8,  2.4,  4.8 ]
+};
+
+// Doubao：常规价；低延迟模式模型集不同，不提供的档位为 null（图中留空）
+const dbRegData = {
+  hit:  [1.2, 1.2, 0.6, 0.64, 0.96, 1.92, 0.12, 0.18, 0.36, 0.04, 0.08, 0.16, 0.64, 0.96, 1.92],
+  miss: [6,   6,   3,   3.2,  4.8,  9.6,  0.6,  0.9,  1.8,  0.2,  0.4,  0.8,  3.2,  4.8,  9.6 ],
+  out:  [30,  30,  15,  16,   24,   48,   3.6,  5.4,  10.8, 2,    4,    8,    16,   24,   48  ]
+};
+const dbLowData = {
+  hit:  [null, null, 1.2, 1.92, 2.88, 5.76, 0.24, 0.36, 0.72, 0.08, 0.16, 0.32, null, null, null],
+  miss: [null, null, 6,   9.6, 14.4, 28.8, 1.2,  1.8,  3.6,  0.4,  0.8,  1.6,  null, null, null],
+  out:  [null, null, 30,  48,  72,   144,  7.2,  10.8, 21.6, 4,    8,    16,   null, null, null]
+};
+
+let period = 'off'; // off=空闲, peak=高峰（仅 DeepSeek 组）
+let mmTier = 'std'; // std=标准, pri=优先（仅 MiniMax 组）
+let dbTier = 'reg'; // reg=常规, low=低延迟（仅 Doubao 组）
+let chartType = 'bar'; // bar=柱状图, line=折线图（全局）
+const factor = () => (period === 'off' ? 0.5 : 1);
+const fmt = v => {
+  const s = parseFloat(v.toFixed(4)).toString();
+  return s + ' 元';
+};
+
+const seriesByType = values => {
+  const common = {
+    data: values,
+    // 留空档位（null）不显示数值标签
+    label: { show: true, position: 'top', fontSize: 11, formatter: p => (p.value == null ? '' : fmt(p.value)) }
+  };
+  return chartType === 'line'
+    ? { ...common, type: 'line', symbol: 'circle', symbolSize: 9,
+        lineStyle: { width: 3, color: '#1456f0' }, itemStyle: { color: '#1456f0' } }
+    : { ...common, type: 'bar', barWidth: 40,
+        itemStyle: { borderRadius: [4, 4, 0, 0], color: '#1456f0' } };
+};
+
+const baseOption = (values, models, labelFormatter, gridBottom) => ({
+  // containLabel:false + 固定 left/bottom：Y 轴刻度位数变化时绘图区不偏移
+  grid: { left: 48, right: 16, top: 44, bottom: gridBottom, containLabel: false },
+  tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' },
+    formatter: ps => ps[0].value == null ? '' : `${ps[0].name}<br/>${ps[0].marker} ￥${parseFloat(ps[0].value.toFixed(4))} / MTok` },
+  xAxis: {
+    type: 'category', data: models,
+    boundaryGap: true,
+    axisLabel: { interval: 0, fontSize: 11, lineHeight: 14, formatter: labelFormatter }
+  },
+  yAxis: {
+    type: 'value', name: '￥/MTok', nameGap: 16,
+    nameTextStyle: { color: '#8a8f99', fontSize: 12, align: 'left', padding: [0, 0, 0, -8] },
+    axisLabel: { formatter: '{value}' }, splitLine: { lineStyle: { type: 'dashed' } }
+  },
+  series: [seriesByType(values)]
+});
+
+const dsLabelFmt = v => v.replace('deepseek-v4-', 'deepseek-v4-\n');
+const kimiLabelFmt = v => v.replace(/-/g, '-\n');
+const glmLabelFmt = v => v;
+const mmLabelFmt = v => v.replace(/-/g, '-\n').replace(' ', '\n');
+const mimoLabelFmt = v => v;
+const qwenLabelFmt = v => v.replace(' ', '\n');
+// 'doubao-seed-2.0-pro ≤32k' → 前缀 / 型号 / 档位 3 行
+const dbLabelFmt = v => v.replace('doubao-seed-', 'doubao-seed-\n').replace(' ', '\n');
+
+const dsCharts = {
+  hit:  echarts.init(document.getElementById('chartHit')),
+  miss: echarts.init(document.getElementById('chartMiss')),
+  out:  echarts.init(document.getElementById('chartOut'))
+};
+const kimiCharts = {
+  hit:  echarts.init(document.getElementById('kimiHit')),
+  miss: echarts.init(document.getElementById('kimiMiss')),
+  out:  echarts.init(document.getElementById('kimiOut'))
+};
+const glmCharts = {
+  hit:  echarts.init(document.getElementById('glmHit')),
+  miss: echarts.init(document.getElementById('glmMiss')),
+  out:  echarts.init(document.getElementById('glmOut'))
+};
+const mmCharts = {
+  hit:  echarts.init(document.getElementById('mmHit')),
+  miss: echarts.init(document.getElementById('mmMiss')),
+  out:  echarts.init(document.getElementById('mmOut'))
+};
+const mimoCharts = {
+  hit:  echarts.init(document.getElementById('mimoHit')),
+  miss: echarts.init(document.getElementById('mimoMiss')),
+  out:  echarts.init(document.getElementById('mimoOut'))
+};
+const qwenCharts = {
+  hit:  echarts.init(document.getElementById('qwenHit')),
+  miss: echarts.init(document.getElementById('qwenMiss')),
+  out:  echarts.init(document.getElementById('qwenOut'))
+};
+const dbCharts = {
+  hit:  echarts.init(document.getElementById('dbHit')),
+  miss: echarts.init(document.getElementById('dbMiss')),
+  out:  echarts.init(document.getElementById('dbOut'))
+};
+
+function render() {
+  const f = factor();
+  // notMerge=true：保证柱状/折线切换时系列类型彻底替换
+  // bottom：DS 标签 2 行需 46px；Kimi 标签最多 4 行需 72px
+  for (const key of Object.keys(dsCharts)) {
+    dsCharts[key].setOption(
+      baseOption(dsPeakData[key].map(v => parseFloat((v * f).toFixed(4))), dsModels, dsLabelFmt, 46), true);
+  }
+  for (const key of Object.keys(kimiCharts)) {
+    kimiCharts[key].setOption(baseOption(kimiData[key], kimiModels, kimiLabelFmt, 72), true);
+  }
+  // GLM 标签单行，bottom 30px 即可
+  for (const key of Object.keys(glmCharts)) {
+    glmCharts[key].setOption(baseOption(glmData[key], glmModels, glmLabelFmt, 30), true);
+  }
+  // MiniMax：优先档按 mmPriFactor 放大；标签最多 3 行，bottom 58px
+  const mmf = i => (mmTier === 'pri' ? mmPriFactor[i] : 1);
+  for (const key of Object.keys(mmCharts)) {
+    mmCharts[key].setOption(
+      baseOption(mmStdData[key].map((v, i) => parseFloat((v * mmf(i)).toFixed(4))), mmModels, mmLabelFmt, 58), true);
+  }
+  // MiMo 标签单行，bottom 30px
+  for (const key of Object.keys(mimoCharts)) {
+    mimoCharts[key].setOption(baseOption(mimoData[key], mimoModels, mimoLabelFmt, 30), true);
+  }
+  // Qwen 标签最多 2 行，bottom 42px
+  for (const key of Object.keys(qwenCharts)) {
+    qwenCharts[key].setOption(baseOption(qwenData[key], qwenModels, qwenLabelFmt, 42), true);
+  }
+  // Doubao 标签最多 3 行，bottom 56px；按 常规/低延迟 选数据集
+  const dbData = dbTier === 'low' ? dbLowData : dbRegData;
+  for (const key of Object.keys(dbCharts)) {
+    dbCharts[key].setOption(baseOption(dbData[key], dbModels, dbLabelFmt, 56), true);
+  }
+}
+
+const btnOff = document.getElementById('btnOff');
+const btnPeak = document.getElementById('btnPeak');
+const btnBar = document.getElementById('btnBar');
+const btnLine = document.getElementById('btnLine');
+const btnMmStd = document.getElementById('btnMmStd');
+const btnMmPri = document.getElementById('btnMmPri');
+function setPeriod(p) {
+  period = p;
+  btnOff.classList.toggle('active', p === 'off');
+  btnPeak.classList.toggle('active', p === 'peak');
+  render();
+}
+function setChartType(t) {
+  chartType = t;
+  btnBar.classList.toggle('active', t === 'bar');
+  btnLine.classList.toggle('active', t === 'line');
+  render();
+}
+btnOff.onclick = () => setPeriod('off');
+btnPeak.onclick = () => setPeriod('peak');
+btnBar.onclick = () => setChartType('bar');
+btnLine.onclick = () => setChartType('line');
+function setMmTier(t) {
+  mmTier = t;
+  btnMmStd.classList.toggle('active', t === 'std');
+  btnMmPri.classList.toggle('active', t === 'pri');
+  render();
+}
+btnMmStd.onclick = () => setMmTier('std');
+btnMmPri.onclick = () => setMmTier('pri');
+
+const btnDbReg = document.getElementById('btnDbReg');
+const btnDbLow = document.getElementById('btnDbLow');
+function setDbTier(t) {
+  dbTier = t;
+  btnDbReg.classList.toggle('active', t === 'reg');
+  btnDbLow.classList.toggle('active', t === 'low');
+  render();
+}
+btnDbReg.onclick = () => setDbTier('reg');
+btnDbLow.onclick = () => setDbTier('low');
+
+window.addEventListener('resize', () =>
+  [...Object.values(dsCharts), ...Object.values(kimiCharts), ...Object.values(glmCharts),
+   ...Object.values(mmCharts), ...Object.values(mimoCharts), ...Object.values(qwenCharts),
+   ...Object.values(dbCharts)].forEach(c => c.resize()));
+render();
+</script>
+</body>
+</html>
