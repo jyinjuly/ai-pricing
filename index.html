@@ -7,11 +7,31 @@
 <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
+  /* 主题变量：默认明亮，body[data-theme="dark"] 覆盖为暗黑 */
+  :root {
+    --page-bg: #f5f7fa;      --card-bg: #fff;
+    --text: #1f2329;         --text-2: #5f6368;         --text-3: #8a8f99;
+    --border: #d5dae3;       --hover-border: #9aa4b5;
+    --toggle-bg: #e8ebf0;    --toggle-active-bg: #fff;
+    --accent: #1456f0;       --chip-active-bg: #eaf1fe;
+    --warn: #d93026;
+    --shadow: 0 1px 4px rgba(0,0,0,.06); --toggle-shadow: 0 1px 4px rgba(0,0,0,.12);
+  }
+  body[data-theme="dark"] {
+    --page-bg: #12151c;      --card-bg: #1c2130;
+    --text: #e6e8ee;         --text-2: #9aa3b2;         --text-3: #7c8494;
+    --border: #39415a;       --hover-border: #556080;
+    --toggle-bg: #262c3d;    --toggle-active-bg: #3a4358;
+    --accent: #7b9cff;       --chip-active-bg: rgba(123,156,255,.16);
+    --warn: #f26d5f;
+    --shadow: 0 1px 4px rgba(0,0,0,.4);  --toggle-shadow: 0 1px 4px rgba(0,0,0,.4);
+  }
   body {
     font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
-    background: #f5f7fa;
-    color: #1f2329;
+    background: var(--page-bg);
+    color: var(--text);
     padding: 32px 24px;
+    transition: background-color .25s, color .25s;
   }
   /* 宽屏拉宽：92% 视口宽，上限 1760px */
   .container { width: min(92%, 1760px); margin: 0 auto; }
@@ -19,16 +39,16 @@
   h1 { font-size: 24px; font-weight: 600; }
   .controls { display: flex; gap: 12px; flex-wrap: wrap; }
   .toggle {
-    display: inline-flex; background: #e8ebf0; border-radius: 10px; padding: 4px;
+    display: inline-flex; background: var(--toggle-bg); border-radius: 10px; padding: 4px;
   }
   .toggle button {
     border: none; background: transparent; padding: 8px 24px; font-size: 14px;
-    border-radius: 8px; cursor: pointer; color: #5f6368; transition: all .2s;
+    border-radius: 8px; cursor: pointer; color: var(--text-2); transition: all .2s;
     font-family: inherit;
   }
-  .toggle button.active { background: #fff; color: #1456f0; font-weight: 600; box-shadow: 0 1px 4px rgba(0,0,0,.12); }
-  .note { font-size: 13px; color: #8a8f99; margin-bottom: 16px; }
-  .note .warn { color: #d93026; font-weight: 600; }
+  .toggle button.active { background: var(--toggle-active-bg); color: var(--accent); font-weight: 600; box-shadow: var(--toggle-shadow); }
+  .note { font-size: 13px; color: var(--text-3); margin-bottom: 16px; }
+  .note .warn { color: var(--warn); font-weight: 600; }
   .group { margin-top: 28px; }
   .group-head {
     display: flex; align-items: center; justify-content: space-between;
@@ -36,7 +56,7 @@
   }
   .group-head h2 { font-size: 18px; font-weight: 600; }
   .group-title { display: flex; align-items: baseline; gap: 10px; }
-  .group-title a { font-size: 12px; color: #1456f0; text-decoration: none; }
+  .group-title a { font-size: 12px; color: var(--accent); text-decoration: none; }
   .group-title a:hover { text-decoration: underline; }
   .grid {
     display: grid; grid-template-columns: repeat(3, 1fr);
@@ -48,11 +68,35 @@
   @media (max-width: 1200px) { .grid { grid-template-columns: repeat(2, 1fr); } }
   @media (max-width: 760px) { .grid { grid-template-columns: 1fr; } }
   .card {
-    background: #fff; border-radius: 12px; padding: 20px;
-    box-shadow: 0 1px 4px rgba(0,0,0,.06);
+    background: var(--card-bg); border-radius: 12px; padding: 20px;
+    box-shadow: var(--shadow);
+    min-width: 0; /* 允许 grid 项收缩，滚动由内部 .chart-wrap 承担 */
+    transition: background-color .25s, box-shadow .25s;
   }
   .card h3 { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
   .chart { width: 100%; height: 260px; }
+  /* 窄屏横向滚动：类目多的组给图表设最小宽度，超出容器时滚动而非挤压 */
+  .chart-wrap { overflow-x: auto; }
+  .chart.qwen-w { min-width: 880px; }
+  .chart.db-w { min-width: 1440px; }
+  /* 汇总模块：系列颜色图例 */
+  .legend { display: flex; flex-wrap: wrap; gap: 14px; margin: 0 0 16px; font-size: 12px; color: var(--text-2); }
+  .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
+  /* 全局筛选栏：chips 样式（多选场景，区别于单选 segmented 开关） */
+  .filters { margin: 0 0 28px; }
+  .filter-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+  .filter-row:last-child { margin-bottom: 0; }
+  .filter-label { font-size: 13px; color: var(--text-2); min-width: 56px; }
+  .filters .toggle { background: transparent; padding: 0; gap: 8px; flex-wrap: wrap; border-radius: 0; }
+  .filters .toggle button {
+    border: 1px solid var(--border); background: var(--card-bg); color: var(--text-2);
+    padding: 6px 16px; border-radius: 999px; box-shadow: none; font-size: 13px;
+  }
+  .filters .toggle button:hover { border-color: var(--hover-border); color: var(--text); }
+  .filters .toggle button.active {
+    background: var(--chip-active-bg); color: var(--accent); border-color: var(--accent);
+    font-weight: 600; box-shadow: none;
+  }
 </style>
 </head>
 <body>
@@ -61,6 +105,10 @@
     <h1>模型定价对比</h1>
     <div class="controls">
       <div class="toggle">
+        <button id="btnLight" class="active">明亮</button>
+        <button id="btnDark">暗黑</button>
+      </div>
+      <div class="toggle">
         <button id="btnBar" class="active">柱状图</button>
         <button id="btnLine">折线图</button>
       </div>
@@ -68,15 +116,76 @@
   </header>
   <p class="note">价格单位：元 / 百万 tokens（￥/MTok）</p>
 
+  <!-- 全局筛选：模型系列多选（默认 DS/Kimi/GLM/MiniMax）+ 图表类型多选 -->
+  <div class="filters">
+    <div class="filter-row">
+      <span class="filter-label">模型系列</span>
+      <div class="toggle" id="seriesFilter">
+        <button data-g="DeepSeek" class="active">DeepSeek</button>
+        <button data-g="Kimi" class="active">Kimi</button>
+        <button data-g="GLM" class="active">GLM</button>
+        <button data-g="MiniMax" class="active">MiniMax</button>
+        <button data-g="MiMo">MiMo</button>
+        <button data-g="Qwen">Qwen</button>
+        <button data-g="Doubao">Doubao</button>
+      </div>
+    </div>
+    <div class="filter-row">
+      <span class="filter-label">图表</span>
+      <div class="toggle" id="chartFilter">
+        <button data-c="hit" class="active">输入（缓存命中）</button>
+        <button data-c="miss" class="active">输入（缓存未命中）</button>
+        <button data-c="out" class="active">输出</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 汇总模块：聚合全部系列模型，横向柱状图，随各系列开关联动 -->
   <section class="group">
+    <div class="group-head">
+      <div class="group-title">
+        <h2>汇总对比</h2>
+      </div>
+      <div class="toggle">
+        <button id="btnSumAsc" class="active">价格升序</button>
+        <button id="btnSumDesc">价格降序</button>
+      </div>
+    </div>
+    <p class="note">包含全部模型，随各系列开关（DeepSeek 空闲/高峰、MiniMax 标准/优先、Doubao 常规/低延迟）联动；颜色区分系列</p>
+    <div class="legend">
+      <span><i style="background:#2563eb"></i>DeepSeek</span>
+      <span><i style="background:#7c3aed"></i>Kimi</span>
+      <span><i style="background:#0891b2"></i>GLM</span>
+      <span><i style="background:#dc2626"></i>MiniMax</span>
+      <span><i style="background:#ea580c"></i>MiMo</span>
+      <span><i style="background:#16a34a"></i>Qwen</span>
+      <span><i style="background:#4f46e5"></i>Doubao</span>
+    </div>
+    <div class="grid">
+      <div class="card">
+        <h3>输入（缓存命中）</h3>
+        <div id="sumHit" class="chart"></div>
+      </div>
+      <div class="card">
+        <h3>输入（缓存未命中）</h3>
+        <div id="sumMiss" class="chart"></div>
+      </div>
+      <div class="card">
+        <h3>输出</h3>
+        <div id="sumOut" class="chart"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="group" data-group="DeepSeek">
     <div class="group-head">
       <div class="group-title">
         <h2>DeepSeek 系列</h2>
         <a href="https://api-docs.deepseek.com/zh-cn/quick_start/pricing/" target="_blank" rel="noopener">官方来源</a>
       </div>
       <div class="toggle">
-        <button id="btnOff" class="active">空闲时段</button>
-        <button id="btnPeak">高峰时段</button>
+        <button id="btnOff">空闲时段</button>
+        <button id="btnPeak" class="active">高峰时段</button>
       </div>
     </div>
     <p class="note">高峰时段：北京时间周一至周五 9:00–12:00、14:00–18:00，其余为空闲时段（空闲价为高峰价的一半）</p>
@@ -96,7 +205,7 @@
     </div>
   </section>
 
-  <section class="group">
+  <section class="group" data-group="Kimi">
     <div class="group-head">
       <div class="group-title">
         <h2>Kimi 系列</h2>
@@ -119,7 +228,7 @@
     </div>
   </section>
 
-  <section class="group">
+  <section class="group" data-group="GLM">
     <div class="group-head">
       <div class="group-title">
         <h2>GLM 系列</h2>
@@ -143,7 +252,7 @@
     </div>
   </section>
 
-  <section class="group">
+  <section class="group" data-group="MiniMax">
     <div class="group-head">
       <div class="group-title">
         <h2>MiniMax 系列</h2>
@@ -171,7 +280,7 @@
     </div>
   </section>
 
-  <section class="group">
+  <section class="group" data-group="MiMo">
     <div class="group-head">
       <div class="group-title">
         <h2>MiMo 系列</h2>
@@ -194,7 +303,7 @@
     </div>
   </section>
 
-  <section class="group">
+  <section class="group" data-group="Qwen">
     <div class="group-head">
       <div class="group-title">
         <h2>Qwen 系列</h2>
@@ -205,20 +314,20 @@
     <div class="grid stack">
       <div class="card">
         <h3>输入（缓存命中）</h3>
-        <div id="qwenHit" class="chart"></div>
+        <div class="chart-wrap"><div id="qwenHit" class="chart qwen-w"></div></div>
       </div>
       <div class="card">
         <h3>输入（缓存未命中）</h3>
-        <div id="qwenMiss" class="chart"></div>
+        <div class="chart-wrap"><div id="qwenMiss" class="chart qwen-w"></div></div>
       </div>
       <div class="card">
         <h3>输出</h3>
-        <div id="qwenOut" class="chart"></div>
+        <div class="chart-wrap"><div id="qwenOut" class="chart qwen-w"></div></div>
       </div>
     </div>
   </section>
 
-  <section class="group">
+  <section class="group" data-group="Doubao">
     <div class="group-head">
       <div class="group-title">
         <h2>Doubao 系列</h2>
@@ -232,15 +341,15 @@
     <div class="grid stack">
       <div class="card">
         <h3>输入（缓存命中）</h3>
-        <div id="dbHit" class="chart"></div>
+        <div class="chart-wrap"><div id="dbHit" class="chart db-w"></div></div>
       </div>
       <div class="card">
         <h3>输入（缓存未命中）</h3>
-        <div id="dbMiss" class="chart"></div>
+        <div class="chart-wrap"><div id="dbMiss" class="chart db-w"></div></div>
       </div>
       <div class="card">
         <h3>输出</h3>
-        <div id="dbOut" class="chart"></div>
+        <div class="chart-wrap"><div id="dbOut" class="chart db-w"></div></div>
       </div>
     </div>
   </section>
@@ -321,10 +430,20 @@ const dbLowData = {
   out:  [null, null, 30,  48,  72,   144,  7.2,  10.8, 21.6, 4,    8,    16,   null, null, null]
 };
 
-let period = 'off'; // off=空闲, peak=高峰（仅 DeepSeek 组）
+let period = 'peak'; // off=空闲, peak=高峰（仅 DeepSeek 组）
 let mmTier = 'std'; // std=标准, pri=优先（仅 MiniMax 组）
 let dbTier = 'reg'; // reg=常规, low=低延迟（仅 Doubao 组）
+let sumSort = 'asc'; // asc=价格升序, desc=价格降序（仅汇总模块）
+// 全局筛选：选中的系列 / 图表类型
+const selGroups = new Set(['DeepSeek', 'Kimi', 'GLM', 'MiniMax']);
+const selCharts = new Set(['hit', 'miss', 'out']);
 let chartType = 'bar'; // bar=柱状图, line=折线图（全局）
+let theme = 'light'; // light=明亮, dark=暗黑
+// 图表配色：随主题切换（setOption 时取用）
+const pal = () => theme === 'dark'
+  ? { text: '#e6e8ee', sub: '#98a1b3', name: '#7c8494', split: '#2b3242', accent: '#7b9cff',
+      tip: { backgroundColor: '#262c3d', borderColor: '#39415a', textStyle: { color: '#e6e8ee' } } }
+  : { text: '#1f2329', sub: '#666', name: '#8a8f99', split: '#eee', accent: '#1456f0', tip: {} };
 const factor = () => (period === 'off' ? 0.5 : 1);
 const fmt = v => {
   const s = parseFloat(v.toFixed(4)).toString();
@@ -332,35 +451,39 @@ const fmt = v => {
 };
 
 const seriesByType = values => {
+  const c = pal();
   const common = {
     data: values,
     // 留空档位（null）不显示数值标签
-    label: { show: true, position: 'top', fontSize: 11, formatter: p => (p.value == null ? '' : fmt(p.value)) }
+    label: { show: true, position: 'top', fontSize: 11, color: c.text, formatter: p => (p.value == null ? '' : fmt(p.value)) }
   };
   return chartType === 'line'
     ? { ...common, type: 'line', symbol: 'circle', symbolSize: 9,
-        lineStyle: { width: 3, color: '#1456f0' }, itemStyle: { color: '#1456f0' } }
+        lineStyle: { width: 3, color: c.accent }, itemStyle: { color: c.accent } }
     : { ...common, type: 'bar', barWidth: 40,
-        itemStyle: { borderRadius: [4, 4, 0, 0], color: '#1456f0' } };
+        itemStyle: { borderRadius: [4, 4, 0, 0], color: c.accent } };
 };
 
-const baseOption = (values, models, labelFormatter, gridBottom) => ({
+const baseOption = (values, models, labelFormatter, gridBottom) => {
+  const c = pal();
+  return {
   // containLabel:false + 固定 left/bottom：Y 轴刻度位数变化时绘图区不偏移
   grid: { left: 48, right: 16, top: 44, bottom: gridBottom, containLabel: false },
-  tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' },
+  tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, ...c.tip,
     formatter: ps => ps[0].value == null ? '' : `${ps[0].name}<br/>${ps[0].marker} ￥${parseFloat(ps[0].value.toFixed(4))} / MTok` },
   xAxis: {
     type: 'category', data: models,
     boundaryGap: true,
-    axisLabel: { interval: 0, fontSize: 11, lineHeight: 14, formatter: labelFormatter }
+    axisLabel: { interval: 0, fontSize: 11, lineHeight: 14, color: c.sub, formatter: labelFormatter }
   },
   yAxis: {
     type: 'value', name: '￥/MTok', nameGap: 16,
-    nameTextStyle: { color: '#8a8f99', fontSize: 12, align: 'left', padding: [0, 0, 0, -8] },
-    axisLabel: { formatter: '{value}' }, splitLine: { lineStyle: { type: 'dashed' } }
+    nameTextStyle: { color: c.name, fontSize: 12, align: 'left', padding: [0, 0, 0, -8] },
+    axisLabel: { formatter: '{value}', color: c.sub }, splitLine: { lineStyle: { type: 'dashed', color: c.split } }
   },
   series: [seriesByType(values)]
-});
+  };
+};
 
 const dsLabelFmt = v => v.replace('deepseek-v4-', 'deepseek-v4-\n');
 const kimiLabelFmt = v => v.replace(/-/g, '-\n');
@@ -406,6 +529,67 @@ const dbCharts = {
   miss: echarts.init(document.getElementById('dbMiss')),
   out:  echarts.init(document.getElementById('dbOut'))
 };
+// 汇总模块：横向柱状图，颜色区分系列
+const GROUP_COLORS = {
+  'DeepSeek': '#2563eb', 'Kimi': '#7c3aed', 'GLM': '#0891b2', 'MiniMax': '#dc2626',
+  'MiMo': '#ea580c', 'Qwen': '#16a34a', 'Doubao': '#4f46e5'
+};
+const sumCharts = {
+  hit:  echarts.init(document.getElementById('sumHit')),
+  miss: echarts.init(document.getElementById('sumMiss')),
+  out:  echarts.init(document.getElementById('sumOut'))
+};
+
+// 汇总：聚合全部系列当前开关状态下的价格，null（不提供）剔除
+function buildSummary(key) {
+  const entries = [];
+  const push = (models, values, group) => {
+    if (!selGroups.has(group)) return; // 全局筛选：未选中的系列不进入汇总
+    models.forEach((m, i) => { if (values[i] != null) entries.push({ name: m, value: values[i], group }); });
+  };
+  const f = factor();
+  push(dsModels, dsPeakData[key].map(v => parseFloat((v * f).toFixed(4))), 'DeepSeek');
+  push(kimiModels, kimiData[key], 'Kimi');
+  push(glmModels, glmData[key], 'GLM');
+  const mmf = i => (mmTier === 'pri' ? mmPriFactor[i] : 1);
+  push(mmModels, mmStdData[key].map((v, i) => parseFloat((v * mmf(i)).toFixed(4))), 'MiniMax');
+  push(mimoModels, mimoData[key], 'MiMo');
+  push(qwenModels, qwenData[key], 'Qwen');
+  const dbData = dbTier === 'low' ? dbLowData : dbRegData;
+  push(dbModels, dbData[key], 'Doubao');
+  entries.sort((a, b) => sumSort === 'asc' ? a.value - b.value : b.value - a.value);
+  return entries;
+}
+
+function summaryOption(entries) {
+  const c = pal();
+  return {
+    grid: { left: 8, right: 56, top: 10, bottom: 10, containLabel: true },
+    tooltip: { trigger: 'item', ...c.tip,
+      formatter: p => `${p.name}<br/>${p.marker} ￥${parseFloat(p.value.toFixed(4))} / MTok` },
+    xAxis: { type: 'value',
+      axisLabel: { color: c.sub, fontSize: 11 },
+      splitLine: { lineStyle: { type: 'dashed', color: c.split } } },
+    yAxis: { type: 'category', data: entries.map(e => e.name), inverse: true,
+      axisLabel: { color: c.sub, fontSize: 10, width: 168, overflow: 'truncate' },
+      axisTick: { show: false }, axisLine: { show: false } },
+    series: [{
+      type: 'bar', barWidth: 13,
+      data: entries.map(e => ({ value: e.value, itemStyle: { color: GROUP_COLORS[e.group], borderRadius: [0, 4, 4, 0] } })),
+      label: { show: true, position: 'right', distance: 4, fontSize: 10, color: c.text, formatter: p => fmt(p.value) }
+    }]
+  };
+}
+
+function renderSummary() {
+  for (const key of Object.keys(sumCharts)) {
+    const entries = buildSummary(key);
+    const el = document.getElementById(sumCharts[key].getDom().id);
+    el.style.height = (entries.length * 22 + 60) + 'px';
+    sumCharts[key].resize();
+    sumCharts[key].setOption(summaryOption(entries), true);
+  }
+}
 
 function render() {
   const f = factor();
@@ -441,12 +625,15 @@ function render() {
   for (const key of Object.keys(dbCharts)) {
     dbCharts[key].setOption(baseOption(dbData[key], dbModels, dbLabelFmt, 56), true);
   }
+  renderSummary(); // 汇总模块随所有开关联动
 }
 
 const btnOff = document.getElementById('btnOff');
 const btnPeak = document.getElementById('btnPeak');
 const btnBar = document.getElementById('btnBar');
 const btnLine = document.getElementById('btnLine');
+const btnLight = document.getElementById('btnLight');
+const btnDark = document.getElementById('btnDark');
 const btnMmStd = document.getElementById('btnMmStd');
 const btnMmPri = document.getElementById('btnMmPri');
 function setPeriod(p) {
@@ -465,6 +652,15 @@ btnOff.onclick = () => setPeriod('off');
 btnPeak.onclick = () => setPeriod('peak');
 btnBar.onclick = () => setChartType('bar');
 btnLine.onclick = () => setChartType('line');
+function setTheme(t) {
+  theme = t;
+  document.body.dataset.theme = t; // CSS 变量随 body[data-theme] 覆盖
+  btnLight.classList.toggle('active', t === 'light');
+  btnDark.classList.toggle('active', t === 'dark');
+  render(); // 重设 option 应用图表配色
+}
+btnLight.onclick = () => setTheme('light');
+btnDark.onclick = () => setTheme('dark');
 function setMmTier(t) {
   mmTier = t;
   btnMmStd.classList.toggle('active', t === 'std');
@@ -485,11 +681,55 @@ function setDbTier(t) {
 btnDbReg.onclick = () => setDbTier('reg');
 btnDbLow.onclick = () => setDbTier('low');
 
-window.addEventListener('resize', () =>
+const btnSumAsc = document.getElementById('btnSumAsc');
+const btnSumDesc = document.getElementById('btnSumDesc');
+function setSumSort(s) {
+  sumSort = s;
+  btnSumAsc.classList.toggle('active', s === 'asc');
+  btnSumDesc.classList.toggle('active', s === 'desc');
+  render();
+}
+btnSumAsc.onclick = () => setSumSort('asc');
+btnSumDesc.onclick = () => setSumSort('desc');
+
+function resizeAll() {
   [...Object.values(dsCharts), ...Object.values(kimiCharts), ...Object.values(glmCharts),
    ...Object.values(mmCharts), ...Object.values(mimoCharts), ...Object.values(qwenCharts),
-   ...Object.values(dbCharts)].forEach(c => c.resize()));
-render();
+   ...Object.values(dbCharts), ...Object.values(sumCharts)].forEach(c => c.resize());
+}
+window.addEventListener('resize', resizeAll);
+
+// 全局筛选：卡片按图表类型归类（id 后缀 Hit/Miss/Out），系列区块按 data-group
+const chartTypeOf = { Hit: 'hit', Miss: 'miss', Out: 'out' };
+const allCards = [...document.querySelectorAll('.card')].map(card => {
+  const chart = card.querySelector('.chart');
+  const m = chart && chart.id.match(/(Hit|Miss|Out)$/);
+  return { card, type: m ? chartTypeOf[m[1]] : null };
+});
+const groupSections = [...document.querySelectorAll('section.group[data-group]')];
+
+function applyFilters() {
+  for (const s of groupSections) s.style.display = selGroups.has(s.dataset.group) ? '' : 'none';
+  for (const c of allCards) c.card.style.display = selCharts.has(c.type) ? '' : 'none';
+  render();
+  // 显隐后容器尺寸变化，下一帧统一 resize
+  requestAnimationFrame(resizeAll);
+}
+
+document.querySelectorAll('#seriesFilter button').forEach(btn => btn.onclick = () => {
+  const g = btn.dataset.g;
+  selGroups.has(g) ? selGroups.delete(g) : selGroups.add(g);
+  btn.classList.toggle('active');
+  applyFilters();
+});
+document.querySelectorAll('#chartFilter button').forEach(btn => btn.onclick = () => {
+  const c = btn.dataset.c;
+  selCharts.has(c) ? selCharts.delete(c) : selCharts.add(c);
+  btn.classList.toggle('active');
+  applyFilters();
+});
+
+applyFilters();
 </script>
 </body>
 </html>
