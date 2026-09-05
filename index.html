@@ -75,10 +75,15 @@
   }
   .card h3 { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
   .chart { width: 100%; height: 260px; }
-  /* 窄屏横向滚动：类目多的组给图表设最小宽度，超出容器时滚动而非挤压 */
+  /* 窄屏横向滚动：所有图表设最小宽度，超出容器时滚动而非挤压 */
   .chart-wrap { overflow-x: auto; }
   .chart.qwen-w { min-width: 880px; }
   .chart.db-w { min-width: 1440px; }
+  /* 窄屏统一处理：全部分组图表横向滑动；汇总图更宽以容纳左侧模型名列 */
+  @media (max-width: 760px) {
+    .chart { min-width: 380px; }
+    .chart.sum-w { min-width: 520px; }
+  }
   /* 汇总模块：系列颜色图例 */
   .legend { display: flex; flex-wrap: wrap; gap: 14px; margin: 0 0 16px; font-size: 12px; color: var(--text-2); }
   .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
@@ -164,15 +169,15 @@
     <div class="grid">
       <div class="card">
         <h3>输入（缓存命中）</h3>
-        <div id="sumHit" class="chart"></div>
+        <div class="chart-wrap"><div id="sumHit" class="chart sum-w"></div></div>
       </div>
       <div class="card">
         <h3>输入（缓存未命中）</h3>
-        <div id="sumMiss" class="chart"></div>
+        <div class="chart-wrap"><div id="sumMiss" class="chart sum-w"></div></div>
       </div>
       <div class="card">
         <h3>输出</h3>
-        <div id="sumOut" class="chart"></div>
+        <div class="chart-wrap"><div id="sumOut" class="chart sum-w"></div></div>
       </div>
     </div>
   </section>
@@ -192,15 +197,15 @@
     <div class="grid">
       <div class="card">
         <h3>输入（缓存命中）</h3>
-        <div id="chartHit" class="chart"></div>
+        <div class="chart-wrap"><div id="chartHit" class="chart"></div></div>
       </div>
       <div class="card">
         <h3>输入（缓存未命中）</h3>
-        <div id="chartMiss" class="chart"></div>
+        <div class="chart-wrap"><div id="chartMiss" class="chart"></div></div>
       </div>
       <div class="card">
         <h3>输出</h3>
-        <div id="chartOut" class="chart"></div>
+        <div class="chart-wrap"><div id="chartOut" class="chart"></div></div>
       </div>
     </div>
   </section>
@@ -215,15 +220,15 @@
     <div class="grid">
       <div class="card">
         <h3>输入（缓存命中）</h3>
-        <div id="kimiHit" class="chart"></div>
+        <div class="chart-wrap"><div id="kimiHit" class="chart"></div></div>
       </div>
       <div class="card">
         <h3>输入（缓存未命中）</h3>
-        <div id="kimiMiss" class="chart"></div>
+        <div class="chart-wrap"><div id="kimiMiss" class="chart"></div></div>
       </div>
       <div class="card">
         <h3>输出</h3>
-        <div id="kimiOut" class="chart"></div>
+        <div class="chart-wrap"><div id="kimiOut" class="chart"></div></div>
       </div>
     </div>
   </section>
@@ -239,15 +244,15 @@
     <div class="grid">
       <div class="card">
         <h3>输入（缓存命中）</h3>
-        <div id="glmHit" class="chart"></div>
+        <div class="chart-wrap"><div id="glmHit" class="chart"></div></div>
       </div>
       <div class="card">
         <h3>输入（缓存未命中）</h3>
-        <div id="glmMiss" class="chart"></div>
+        <div class="chart-wrap"><div id="glmMiss" class="chart"></div></div>
       </div>
       <div class="card">
         <h3>输出</h3>
-        <div id="glmOut" class="chart"></div>
+        <div class="chart-wrap"><div id="glmOut" class="chart"></div></div>
       </div>
     </div>
   </section>
@@ -267,15 +272,15 @@
     <div class="grid">
       <div class="card">
         <h3>输入（缓存命中）</h3>
-        <div id="mmHit" class="chart"></div>
+        <div class="chart-wrap"><div id="mmHit" class="chart"></div></div>
       </div>
       <div class="card">
         <h3>输入（缓存未命中）</h3>
-        <div id="mmMiss" class="chart"></div>
+        <div class="chart-wrap"><div id="mmMiss" class="chart"></div></div>
       </div>
       <div class="card">
         <h3>输出</h3>
-        <div id="mmOut" class="chart"></div>
+        <div class="chart-wrap"><div id="mmOut" class="chart"></div></div>
       </div>
     </div>
   </section>
@@ -290,15 +295,15 @@
     <div class="grid">
       <div class="card">
         <h3>输入（缓存命中）</h3>
-        <div id="mimoHit" class="chart"></div>
+        <div class="chart-wrap"><div id="mimoHit" class="chart"></div></div>
       </div>
       <div class="card">
         <h3>输入（缓存未命中）</h3>
-        <div id="mimoMiss" class="chart"></div>
+        <div class="chart-wrap"><div id="mimoMiss" class="chart"></div></div>
       </div>
       <div class="card">
         <h3>输出</h3>
-        <div id="mimoOut" class="chart"></div>
+        <div class="chart-wrap"><div id="mimoOut" class="chart"></div></div>
       </div>
     </div>
   </section>
