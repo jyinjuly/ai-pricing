@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NONGFU AI</title>
+<title>农夫AI · NONGFU AI</title>
 <link rel="icon" type="image/png" href="assets/logo.ico">
 <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
 <style>
@@ -17,6 +17,7 @@
     --accent: #1456f0;       --chip-active-bg: #eaf1fe;
     --warn: #d93026;
     --shadow: 0 1px 4px rgba(0,0,0,.06); --toggle-shadow: 0 1px 4px rgba(0,0,0,.12);
+    --hero-bg: linear-gradient(135deg, #eaf1fe 0%, rgba(234,241,254,0) 65%);
   }
   body[data-theme="dark"] {
     --page-bg: #12151c;      --card-bg: #1c2130;
@@ -26,6 +27,7 @@
     --accent: #7b9cff;       --chip-active-bg: rgba(123,156,255,.16);
     --warn: #f26d5f;
     --shadow: 0 1px 4px rgba(0,0,0,.4);  --toggle-shadow: 0 1px 4px rgba(0,0,0,.4);
+    --hero-bg: linear-gradient(135deg, rgba(123,156,255,.16) 0%, rgba(123,156,255,0) 65%);
   }
   body {
     font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
@@ -103,9 +105,74 @@
     background: var(--chip-active-bg); color: var(--accent); border-color: var(--accent);
     font-weight: 600; box-shadow: none;
   }
-  /* 顶部视图切换：模型定价 / 订阅套餐 */
-  .view-toggle { margin: 4px 0 18px; }
-  .view-toggle button { min-width: 104px; }
+  /* 品牌头部：Logo + 站名 + 导航 */
+  .brand { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--text); }
+  .brand img { width: 44px; height: 44px; border-radius: 12px; box-shadow: var(--shadow); }
+  .brand-text { font-size: 20px; font-weight: 700; line-height: 1.15; display: flex; flex-direction: column; }
+  .brand-text em { font-style: normal; font-size: 10px; font-weight: 600; letter-spacing: 2.5px; color: var(--text-3); }
+  .nav-links { display: flex; gap: 4px; flex-wrap: wrap; }
+  .nav-links a {
+    font-size: 14px; color: var(--text-2); text-decoration: none;
+    padding: 8px 14px; border-radius: 8px; transition: all .2s;
+  }
+  .nav-links a:hover { color: var(--text); background: var(--toggle-bg); }
+  .nav-links a.active { color: var(--accent); font-weight: 600; background: var(--chip-active-bg); }
+  /* 模块视图顶部工具条（说明 + 控制开关） */
+  .view-toolbar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; }
+  .view-toolbar .note { margin: 0; }
+  /* 首页 Hero：Logo + 主副标语 */
+  .hero {
+    text-align: center; padding: 60px 24px 48px; margin-top: 12px;
+    background: var(--hero-bg); border: 1px solid var(--border); border-radius: 16px;
+  }
+  .hero-logo { width: 140px; height: 140px; border-radius: 32px; box-shadow: 0 8px 28px rgba(0,0,0,.16); }
+  .hero-title { font-size: 42px; font-weight: 700; margin-top: 22px; letter-spacing: 2px; }
+  .hero-title-en { font-size: 14px; font-weight: 600; letter-spacing: 6px; color: var(--text-3); margin-top: 4px; }
+  .hero-slogan { font-size: 22px; font-weight: 600; margin-top: 26px; }
+  .hero-slogan-sub { font-size: 15px; color: var(--text-2); margin-top: 10px; }
+  /* 首页模块导航卡片 */
+  .modules { margin-top: 36px; }
+  .modules-title { font-size: 20px; font-weight: 600; text-align: center; }
+  .modules-sub { font-size: 13px; color: var(--text-3); text-align: center; margin: 6px 0 22px; }
+  .module-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 22px; }
+  .module-card {
+    display: flex; gap: 20px; background: var(--card-bg); border: 1px solid var(--border);
+    border-radius: 14px; padding: 22px; box-shadow: var(--shadow);
+    text-decoration: none; color: var(--text); transition: transform .2s, border-color .2s, box-shadow .2s;
+  }
+  .module-card:hover { transform: translateY(-4px); border-color: var(--accent); box-shadow: 0 10px 24px rgba(0,0,0,.10); }
+  .module-illus {
+    flex: none; width: 190px; display: flex; align-items: center;
+    background: var(--page-bg); border: 1px solid var(--border); border-radius: 10px; padding: 12px;
+  }
+  .module-illus svg { width: 100%; height: auto; }
+  .module-body { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+  .module-body h3 { font-size: 17px; font-weight: 600; }
+  .module-body p { font-size: 13px; color: var(--text-2); line-height: 1.7; }
+  .module-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .module-tags span { font-size: 11px; color: var(--text-2); border: 1px solid var(--border); border-radius: 999px; padding: 2px 10px; }
+  .module-cta { margin-top: auto; font-size: 14px; font-weight: 600; color: var(--accent); }
+  .module-cta i { font-style: normal; display: inline-block; transition: transform .2s; }
+  .module-card:hover .module-cta i { transform: translateX(4px); }
+  .site-footer { margin-top: 48px; padding-top: 18px; border-top: 1px dashed var(--border); text-align: center; font-size: 12px; color: var(--text-3); }
+  /* 模块插画 SVG 配色（随主题变量联动） */
+  .il-axis { stroke: var(--text-3); stroke-width: 2; stroke-linecap: round; }
+  .il-grid { stroke: var(--border); stroke-width: 1; stroke-dasharray: 4 5; }
+  .il-cur { fill: var(--text-3); font-size: 15px; font-weight: 700; }
+  .il-card-back { fill: var(--toggle-bg); stroke: var(--border); }
+  .il-card-front { fill: var(--card-bg); stroke: var(--hover-border); }
+  .il-card-head { fill: var(--accent); }
+  .il-price { fill: var(--text); font-size: 20px; font-weight: 700; }
+  .il-check { stroke: var(--accent); stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  .il-line { stroke: var(--border); stroke-width: 5; stroke-linecap: round; }
+  @media (max-width: 560px) {
+    .hero { padding: 40px 16px 32px; }
+    .hero-logo { width: 108px; height: 108px; }
+    .hero-title { font-size: 32px; }
+    .hero-slogan { font-size: 17px; }
+    .module-card { flex-direction: column; }
+    .module-illus { width: 100%; }
+  }
   /* 订阅套餐模块 */
   #view-subscribe .note { margin-bottom: 18px; }
   #view-subscribe .filters { margin-bottom: 24px; }
@@ -169,27 +236,102 @@
 <body>
 <div class="container">
   <header>
-    <h1>模型定价对比</h1>
+    <a class="brand" href="#home">
+      <img src="assets/logo.png" alt="农夫AI Logo">
+      <span class="brand-text">农夫AI<em>NONGFU AI</em></span>
+    </a>
+    <nav class="nav-links">
+      <a href="#home" id="navHome" class="active">首页</a>
+      <a href="#pricing" id="navPricing">API 价格</a>
+      <a href="#subscribe" id="navSubs">订阅套餐</a>
+    </nav>
     <div class="controls">
       <div class="toggle">
         <button id="btnLight" class="active">明亮</button>
         <button id="btnDark">暗黑</button>
       </div>
-      <div class="toggle">
-        <button id="btnBar" class="active">柱状图</button>
-        <button id="btnLine">折线图</button>
-      </div>
     </div>
   </header>
 
-  <!-- 顶部视图切换：模型定价 与 订阅套餐 两个并列视图 -->
-  <div class="toggle view-toggle">
-    <button id="btnViewPricing" class="active">模型定价</button>
-    <button id="btnViewSubs">订阅套餐</button>
-  </div>
+  <!-- 首页：Logo + 主副标语 + 模块概要导航 -->
+  <div id="view-home">
+    <section class="hero">
+      <img class="hero-logo" src="assets/logo.png" alt="农夫AI Logo">
+      <h1 class="hero-title">农夫AI</h1>
+      <p class="hero-title-en">NONGFU AI</p>
+      <p class="hero-slogan">我们不生产AI，我们只是AI的搬运工！</p>
+      <p class="hero-slogan-sub">渗透到社会底层的AI，才是真正伟大的AI！</p>
+    </section>
 
-  <div id="view-pricing">
-  <p class="note">价格单位：元 / 百万 tokens（￥/MTok）</p>
+    <section class="modules">
+      <h2 class="modules-title">模块导航</h2>
+      <p class="modules-sub">两大模块已上线，更多模块持续开垦中……</p>
+      <div class="module-grid">
+        <a class="module-card" href="#pricing">
+          <div class="module-illus">
+            <svg viewBox="0 0 300 170" role="img" aria-label="API 价格柱状图示意">
+              <line x1="34" y1="14" x2="34" y2="140" class="il-axis"/>
+              <line x1="34" y1="140" x2="288" y2="140" class="il-axis"/>
+              <line x1="34" y1="98" x2="288" y2="98" class="il-grid"/>
+              <line x1="34" y1="56" x2="288" y2="56" class="il-grid"/>
+              <text x="24" y="28" class="il-cur">¥</text>
+              <rect x="54"  y="106" width="24" height="34"  rx="4" fill="#2563eb"/>
+              <rect x="92"  y="78"  width="24" height="62"  rx="4" fill="#7c3aed"/>
+              <rect x="130" y="94"  width="24" height="46"  rx="4" fill="#0891b2"/>
+              <rect x="168" y="50"  width="24" height="90"  rx="4" fill="#dc2626"/>
+              <rect x="206" y="70"  width="24" height="70"  rx="4" fill="#16a34a"/>
+              <rect x="244" y="34"  width="24" height="106" rx="4" fill="#4f46e5"/>
+            </svg>
+          </div>
+          <div class="module-body">
+            <h3>API 价格</h3>
+            <p>七大模型厂商 API 定价横向对比：缓存命中 / 未命中输入与输出价格一目了然，支持全系列汇总排序、系列与图表筛选、柱状 / 折线切换。</p>
+            <div class="module-tags">
+              <span>DeepSeek</span><span>Kimi</span><span>GLM</span><span>MiniMax</span>
+              <span>MiMo</span><span>Qwen</span><span>Doubao</span>
+            </div>
+            <span class="module-cta">进入模块 <i>→</i></span>
+          </div>
+        </a>
+        <a class="module-card" href="#subscribe">
+          <div class="module-illus">
+            <svg viewBox="0 0 300 170" role="img" aria-label="订阅套餐卡片示意">
+              <g transform="rotate(-9 105 95)">
+                <rect x="48" y="40" width="114" height="100" rx="12" class="il-card-back"/>
+              </g>
+              <rect x="122" y="30" width="134" height="112" rx="12" class="il-card-front"/>
+              <rect x="122" y="30" width="134" height="24" rx="12" class="il-card-head"/>
+              <rect x="122" y="44" width="134" height="10" class="il-card-head"/>
+              <text x="138" y="92" class="il-price">¥99</text>
+              <path d="M138 108 l4 4 7-8" class="il-check"/>
+              <line x1="156" y1="108" x2="238" y2="108" class="il-line"/>
+              <path d="M138 126 l4 4 7-8" class="il-check"/>
+              <line x1="156" y1="126" x2="222" y2="126" class="il-line"/>
+            </svg>
+          </div>
+          <div class="module-body">
+            <h3>订阅套餐</h3>
+            <p>主流厂商订阅套餐汇总：Coding Plan / Token Plan / 会员 / Agent Plan 四大类型，月包、季包、年包价格与权益清单一屏看清。</p>
+            <div class="module-tags">
+              <span>Coding Plan</span><span>Token Plan</span><span>会员套餐</span><span>Agent Plan</span>
+            </div>
+            <span class="module-cta">进入模块 <i>→</i></span>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <footer class="site-footer">农夫AI · NONGFU AI —— 我们不生产AI，我们只是AI的搬运工！</footer>
+  </div><!-- /view-home -->
+
+  <div id="view-pricing" style="display:none">
+  <div class="view-toolbar">
+    <p class="note">价格单位：元 / 百万 tokens（￥/MTok）</p>
+    <div class="toggle">
+      <button id="btnBar" class="active">柱状图</button>
+      <button id="btnLine">折线图</button>
+    </div>
+  </div>
 
   <!-- 全局筛选：模型系列多选（默认 DS/Kimi/GLM/MiniMax）+ 图表类型多选 -->
   <div class="filters">
@@ -1238,22 +1380,30 @@ document.getElementById('subSections').addEventListener('click', e => {
   renderSubs(); // 重新渲染并保持 subCat 筛选
 });
 
-// 顶部视图切换：模型定价 / 订阅套餐
-const btnViewPricing = document.getElementById('btnViewPricing');
-const btnViewSubs = document.getElementById('btnViewSubs');
+// 视图路由：首页 / API 价格 / 订阅套餐（hash 直达，支持浏览器前进后退）
+const viewHome = document.getElementById('view-home');
 const viewPricing = document.getElementById('view-pricing');
 const viewSubs = document.getElementById('view-subscribe');
+const navHome = document.getElementById('navHome');
+const navPricing = document.getElementById('navPricing');
+const navSubs = document.getElementById('navSubs');
 function setView(v) {
-  btnViewPricing.classList.toggle('active', v === 'pricing');
-  btnViewSubs.classList.toggle('active', v === 'subs');
+  navHome.classList.toggle('active', v === 'home');
+  navPricing.classList.toggle('active', v === 'pricing');
+  navSubs.classList.toggle('active', v === 'subs');
+  viewHome.style.display = v === 'home' ? '' : 'none';
   viewPricing.style.display = v === 'pricing' ? '' : 'none';
   viewSubs.style.display = v === 'subs' ? 'block' : 'none';
   if (v === 'pricing') requestAnimationFrame(resizeAll); // 恢复被隐藏图表的尺寸
+  window.scrollTo(0, 0);
 }
-btnViewPricing.onclick = () => setView('pricing');
-btnViewSubs.onclick = () => setView('subs');
-// 支持 URL hash 直达订阅套餐视图（#subscribe）
-if (location.hash === '#subscribe') setView('subs');
+function routeFromHash() {
+  if (location.hash === '#pricing') setView('pricing');
+  else if (location.hash === '#subscribe') setView('subs');
+  else setView('home');
+}
+window.addEventListener('hashchange', routeFromHash);
+routeFromHash();
 renderSubs();
 </script>
 </body>
