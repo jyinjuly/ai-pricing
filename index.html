@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>模型定价对比</title>
+<title>NONGFU AI</title>
+<link rel="icon" type="image/png" href="assets/logo.ico">
 <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -102,6 +103,67 @@
     background: var(--chip-active-bg); color: var(--accent); border-color: var(--accent);
     font-weight: 600; box-shadow: none;
   }
+  /* 顶部视图切换：模型定价 / 订阅套餐 */
+  .view-toggle { margin: 4px 0 18px; }
+  .view-toggle button { min-width: 104px; }
+  /* 订阅套餐模块 */
+  #view-subscribe .note { margin-bottom: 18px; }
+  #view-subscribe .filters { margin-bottom: 24px; }
+  .sub-group { margin-top: 28px; }
+  .sub-group-head {
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 12px; margin-bottom: 6px;
+  }
+  .sub-cat-tag {
+    font-size: 12px; font-weight: 600; padding: 3px 12px; border-radius: 999px;
+    border: 1px solid var(--border); color: var(--text-2); background: var(--card-bg);
+  }
+  .sub-group[data-cat="coding"] .sub-cat-tag { color: #0891b2; border-color: #0891b2; background: rgba(8,145,178,.12); }
+  .sub-group[data-cat="token"]  .sub-cat-tag { color: #7c3aed; border-color: #7c3aed; background: rgba(124,58,237,.12); }
+  .sub-group[data-cat="member"] .sub-cat-tag { color: #dc2626; border-color: #dc2626; background: rgba(220,38,38,.12); }
+  .sub-group[data-cat="agent"]  .sub-cat-tag { color: #ea580c; border-color: #ea580c; background: rgba(234,88,12,.12); }
+  .sub-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 16px; }
+  .sub-card {
+    background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px;
+    padding: 16px 18px; box-shadow: var(--shadow); display: flex; flex-direction: column;
+    gap: 10px; transition: background-color .25s, box-shadow .25s;
+  }
+  .sub-card.sub-card-featured { border-color: #7c3aed; border-width: 2px; box-shadow: 0 6px 18px rgba(124,58,237,.16); }
+  .sub-card.sub-card-featured .sub-plan-name { color: #7c3aed; }
+  .sub-card-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .sub-plan-name { font-size: 14px; font-weight: 600; }
+  .sub-price { display: flex; align-items: baseline; gap: 2px; }
+  .sub-price .cur { font-size: 14px; font-weight: 600; color: var(--text); }
+  .sub-price .num { font-size: 28px; font-weight: 700; line-height: 1; color: var(--text); }
+  .sub-price .unit { font-size: 12px; color: var(--text-3); }
+  .sub-price-note { font-size: 11px; color: var(--warn); min-height: 15px; }
+  .sub-rows { list-style: none; display: flex; flex-direction: column; gap: 6px; border-top: 1px dashed var(--border); padding-top: 10px; margin-top: auto; }
+  .sub-rows li { display: flex; justify-content: space-between; gap: 12px; font-size: 12px; }
+  .sub-rows li span { color: var(--text-3); }
+  .sub-rows li b { font-weight: 600; color: var(--text); text-align: right; }
+  /* 厂商分组头部控制区（计费周期切换 + 类型标签） */
+  .sub-group-ctl { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .sub-billing button { min-width: 56px; }
+  /* 卡片副标题 / 原价划线 / 推荐徽标 */
+  .sub-plan-sub { font-size: 12px; color: var(--text-2); margin-top: -6px; }
+  .sub-orig { font-size: 12px; color: var(--text-3); text-decoration: line-through; margin-left: 6px; }
+  .sub-badge { font-size: 10px; color: #fff; background: #e8596b; padding: 1px 8px; border-radius: 999px; white-space: nowrap; }
+  .sub-badge.sub-badge-save { background: var(--text); color: var(--card-bg); }
+  /* 会员类卡片：权益勾选清单（✓ 提供 / 减弱半勾） */
+  .sub-checks {
+    list-style: none; display: flex; flex-direction: column; gap: 8px;
+    border-top: 1px dashed var(--border); padding-top: 10px; margin-top: auto;
+  }
+  .sub-checks li { display: flex; align-items: flex-start; gap: 8px; font-size: 12px; color: var(--text-3); line-height: 1.4; }
+  .sub-checks li .mk { width: 14px; flex: none; text-align: center; color: var(--text-3); }
+  .sub-checks li.on { color: var(--text); }
+  .sub-checks li.on .mk { color: var(--accent); font-weight: 700; }
+  .sub-checks li.half { color: var(--text-3); }
+  .sub-checks li.half .mk { color: var(--text-3); opacity: .6; }
+  .sub-checks li.sub-headline { color: var(--text); font-weight: 600; }
+  .sub-checks li.sub-headline .mk { color: var(--accent); }
+  .sub-checks li.sub-headline .sub-hval { display: block; font-weight: 700; }
+  .sub-checks li.sub-headline .sub-hsub { display: block; font-weight: 400; font-size: 11px; color: var(--text-3); margin-top: 2px; }
 </style>
 </head>
 <body>
@@ -119,6 +181,14 @@
       </div>
     </div>
   </header>
+
+  <!-- 顶部视图切换：模型定价 与 订阅套餐 两个并列视图 -->
+  <div class="toggle view-toggle">
+    <button id="btnViewPricing" class="active">模型定价</button>
+    <button id="btnViewSubs">订阅套餐</button>
+  </div>
+
+  <div id="view-pricing">
   <p class="note">价格单位：元 / 百万 tokens（￥/MTok）</p>
 
   <!-- 全局筛选：模型系列多选（默认 DS/Kimi/GLM/MiniMax）+ 图表类型多选 -->
@@ -359,6 +429,25 @@
       </div>
     </div>
   </section>
+  </div><!-- /view-pricing -->
+
+  <!-- 订阅套餐模块：与模型定价并列，覆盖 Coding / Token / 会员 / Agent Plan -->
+  <div id="view-subscribe" style="display:none">
+    <p class="note">订阅套餐（Coding Plan / Token Plan / 会员 / Agent Plan）数据为<strong class="warn">静态采集快照</strong>，价格与额度随厂商频繁调整，请以各官方页面为准</p>
+    <div class="filters">
+      <div class="filter-row">
+        <span class="filter-label">类型</span>
+        <div class="toggle" id="subCatFilter">
+          <button data-c="all" class="active">全部</button>
+          <button data-c="coding">Coding Plan</button>
+          <button data-c="token">Token Plan</button>
+          <button data-c="member">会员套餐</button>
+          <button data-c="agent">Agent Plan</button>
+        </div>
+      </div>
+    </div>
+    <div id="subSections"></div>
+  </div>
 </div>
 
 <script>
@@ -736,6 +825,436 @@ document.querySelectorAll('#chartFilter button').forEach(btn => btn.onclick = ()
 });
 
 applyFilters();
+
+// ===== 订阅套餐模块（Coding / Token / 会员 / Agent Plan）=====
+const SUB_CAT_INFO = { coding: 'Coding Plan', token: 'Token Plan', member: '会员套餐', agent: 'Agent Plan' };
+const SUBS = [
+  {
+    name: 'Kimi', cat: 'member', link: 'https://www.kimi.com/membership/pricing?tab=individual',
+    note: '会员套餐：Kimi 官方会员，含 Agent 额度与 Kimi Code 调用（Plus 及以上），支持连续包月 / 连续包年',
+    cur: '¥',
+    billing: [
+      { id: 'month', label: '月包', sub: '连续包月' },
+      { id: 'year',  label: '年包', sub: '连续包年' }
+    ],
+    plans: [
+      { name: 'Go', tagline: '日常使用',
+        price: { month: '49', year: '39' }, priceNote: { month: '按月计费', year: '按年计费 ¥468' }, origPrice: { year: '49' },
+        checks: [
+          { text: '更多 Agent 额度', on: true },
+          { text: 'Office 文件处理', half: true },
+          { text: '深度研究', half: true },
+          { text: '网站部署', half: true }
+        ] },
+      { name: 'Plus', tagline: '效率升级',
+        price: { month: '99', year: '79' }, priceNote: { month: '按月计费', year: '按年计费 ¥948' }, origPrice: { year: '99' },
+        checks: [
+          { text: '2 倍 Agent 额度', on: true },
+          { text: 'Office 文件处理', half: true },
+          { text: '深度研究', half: true },
+          { text: '网站部署', half: true },
+          { text: 'Kimi Code 可调用', on: true }
+        ] },
+      { name: 'Pro', tagline: '专业优选',
+        price: { month: '199', year: '159' }, priceNote: { month: '按月计费', year: '按年计费 ¥1,908' }, origPrice: { year: '199' },
+        checks: [
+          { text: '4 倍 Agent 额度', on: true },
+          { text: 'Office 文件处理', half: true },
+          { text: '深度研究', half: true },
+          { text: '网站部署', half: true },
+          { text: 'Agent 多任务并行', on: true },
+          { text: 'Kimi Code 可调用', on: true }
+        ] },
+      { name: 'Max', tagline: '全能尊享',
+        price: { month: '699', year: '559' }, priceNote: { month: '按月计费', year: '按年计费 ¥6,708' }, origPrice: { year: '699' },
+        checks: [
+          { text: '14 倍 Agent 额度', on: true },
+          { text: 'Office 文件处理', half: true },
+          { text: '深度研究', half: true },
+          { text: '网站部署', half: true },
+          { text: 'Agent 多任务并行', on: true },
+          { text: 'Kimi Code 可调用', on: true }
+        ] }
+    ]
+  },
+  {
+    name: '智谱 GLM', cat: 'coding', link: 'https://bigmodel.cn/glm-coding',
+    note: 'Coding Plan：支持 GLM-5.3 等旗舰模型，覆盖 ZCode、Claude Code 等 20+ 编程工具；按周积分限额，支持月 / 季 / 年计费',
+    cur: '¥',
+    billing: [
+      { id: 'month',   label: '月包',      sub: '连续包月' },
+      { id: 'quarter', label: '季包', sub: '连续包季' },
+      { id: 'year',    label: '年包', sub: '连续包年' }
+    ],
+    plans: [
+      { name: 'Lite', tagline: '日常使用',
+        price: { month: '118', quarter: '94.4', year: '82.6' }, origPrice: { quarter: '118', year: '118' },
+        headline: '每周 10,000 积分',
+        checks: [
+          { text: '逐步开放最新旗舰模型及功能', on: true },
+          { text: '支持 ZCode、Claude Code 等 20+ 编程工具', on: true }
+        ] },
+      { name: 'Pro', tagline: '高频使用', badge: '最受欢迎',
+        price: { month: '538', quarter: '430.4', year: '376.6' }, origPrice: { quarter: '538', year: '538' },
+        headline: '6 倍 Lite 用量额度',
+        checks: [
+          { text: 'Lite 全部权益', on: true },
+          { text: '优先体验最新旗舰模型及功能', on: true },
+          { text: '覆盖多款精选 MCP 工具', on: true },
+          { text: '更快生成速度', on: true }
+        ] },
+      { name: 'Max', tagline: '深度使用',
+        price: { month: '1078', quarter: '862.4', year: '754.6' }, origPrice: { quarter: '1078', year: '1078' },
+        headline: '14 倍 Lite 用量额度',
+        checks: [
+          { text: 'Pro 全部权益', on: true },
+          { text: '首发接入最新旗舰模型及功能', on: true },
+          { text: '高峰期间专属资源优先保障', on: true }
+        ] }
+    ]
+  },
+  {
+    name: 'MiniMax', cat: 'token', link: 'https://platform.minimax.cn/subscribe/token-plan?tab=individual',
+    note: 'Token Plan：M3 / M2.7 旗舰模型与图像 / 语音共享同一额度，支持主流编程工具与 1M 长上下文',
+    cur: '¥',
+    unit: '',
+    billing: [
+      { id: 'month', label: '月包', sub: '连续包月' },
+      { id: 'year',  label: '年包', sub: '连续包年' }
+    ],
+    plans: [
+      { name: 'Plus',
+        price: { month: '49', year: '490' }, priceNote: { month: '每月，按月订阅', year: '每年，按年订阅' },
+        origPrice: { year: '588' }, badge: { year: '立省 ¥98' },
+        headline: '月度约 6 亿+ token M3 用量',
+        checks: [
+          { text: '支持 MiniMax 旗舰模型（M3 / M2.7 / 图像 / 语音）', on: true },
+          { text: '可同时支持 3–4 个 Agent 并发运行', on: true },
+          { text: '支持主流的编程工具，并持续扩展中', on: true },
+          { text: '1M 长上下文，适合处理长文档 / 大型代码库', on: true },
+          { text: 'M3 原生多模态理解：图像 / 视频输入', on: true },
+          { text: '文本 / 图像 / 语音 共享同一额度', on: true }
+        ] },
+      { name: 'Max', badge: '最受欢迎',
+        price: { month: '119', year: '1190' }, priceNote: { month: '每月，按月订阅', year: '每年，按年订阅' },
+        origPrice: { year: '1498' },
+        headline: '月度约 18 亿+ token M3 用量',
+        checks: [
+          { text: '支持 MiniMax 旗舰模型（M3 / M2.7 / 图像 / 语音）', on: true },
+          { text: '可同时支持 4–5 个 Agent 并发运行', on: true },
+          { text: '支持主流的编程工具，并持续扩展中', on: true },
+          { text: '1M 长上下文，适合处理长文档 / 大型代码库', on: true },
+          { text: 'M3 原生多模态理解：图像 / 视频输入', on: true },
+          { text: '文本 / 图像 / 语音 共享同一额度', on: true },
+          { text: '支持 Hailuo2.3 视频生成，3 条 / 日', on: true }
+        ] },
+      { name: 'Ultra',
+        price: { month: '469', year: '4690' }, priceNote: { month: '每月，按月订阅', year: '每年，按年订阅' },
+        origPrice: { year: '5628' }, badge: { year: '立省 ¥938' },
+        headline: '月度约 71 亿+ token M3 用量',
+        checks: [
+          { text: '支持 MiniMax 旗舰模型（M3 / M2.7 / 图像 / 语音）', on: true },
+          { text: '可同时支持 6–7 个 Agent 并发运行', on: true },
+          { text: '支持主流的编程工具，并持续扩展中', on: true },
+          { text: '1M 长上下文，适合处理长文档 / 大型代码库', on: true },
+          { text: 'M3 原生多模态理解：图像 / 视频输入', on: true },
+          { text: '文本 / 图像 / 语音 共享同一额度', on: true },
+          { text: '支持 Hailuo2.3 视频生成，5 条 / 日', on: true }
+        ] }
+    ]
+  },
+  {
+    name: '小米 MiMo', cat: 'token', link: 'https://platform.xiaomimimo.com/token-plan',
+    note: 'Token Plan：V2.5 全系模型（文本 / 全模态 / 语音），支持 OpenClaw、Codex 等主流编程框架；TTS 免费，夜间 0.8x 消耗',
+    cur: '¥',
+    billing: [
+      { id: 'month', label: '月包', sub: '连续包月' },
+      { id: 'year',  label: '年包', sub: '连续包年' }
+    ],
+    plans: [
+      { name: 'Lite', tagline: '轻量体验',
+        price: { month: '39', year: '34.32' }, unit: '/月', origPrice: { year: '39' },
+        priceNote: { month: '按月计费', year: '按年计费' },
+        badge: { month: '首月立减 4.68元', year: '立减 56.16元' },
+        headline: { month: '41 亿 Credits', year: '492 亿 Credits' },
+        headlineSub: { month: '套餐月总量', year: '套餐年总量' },
+        checks: [
+          { text: '支持 V2.5 全系模型（文本模型 / 全模态 / 语音）', on: true },
+          { text: '支持主流编程框架 OpenClaw / Codex / MiMo Claw 等', on: true },
+          { text: 'TTS 模型免费，限时免费使用', on: true },
+          { text: '夜间 0.8x 消耗，00:00—08:00（UTC+8）', on: true },
+          { text: '畅快使用，无额度限制 · 无 5 小时限额', on: true }
+        ] },
+      { name: 'Standard', tagline: '日常办公',
+        price: { month: '99', year: '87.12' }, unit: '/月', origPrice: { year: '99' },
+        priceNote: { month: '按月计费', year: '按年计费' },
+        badge: { month: '首月立减 11.88元', year: '立减 142.56元' },
+        headline: { month: '110 亿 Credits', year: '1320 亿 Credits' },
+        headlineSub: '= 2.7 x Lite',
+        checks: [
+          { text: '支持 V2.5 全系模型（文本模型 / 全模态 / 语音）', on: true },
+          { text: '支持主流编程框架 OpenClaw / Codex / MiMo Claw 等', on: true },
+          { text: 'TTS 模型免费，限时免费使用', on: true },
+          { text: '夜间 0.8x 消耗，00:00—08:00（UTC+8）', on: true },
+          { text: '畅快使用，无额度限制 · 无 5 小时限额', on: true }
+        ] },
+      { name: 'Pro', tagline: '专业开发',
+        price: { month: '329', year: '289.52' }, unit: '/月', origPrice: { year: '329' },
+        priceNote: { month: '按月计费', year: '按年计费' },
+        badge: { month: '首月立减 39.48元', year: '立减 473.76元' },
+        headline: { month: '380 亿 Credits', year: '4560 亿 Credits' },
+        headlineSub: '= 9.3 x Lite',
+        checks: [
+          { text: '支持 V2.5 全系模型（文本模型 / 全模态 / 语音）', on: true },
+          { text: '支持主流编程框架 OpenClaw / Codex / MiMo Claw 等', on: true },
+          { text: 'TTS 模型免费，限时免费使用', on: true },
+          { text: '夜间 0.8x 消耗，00:00—08:00（UTC+8）', on: true },
+          { text: '畅快使用，无额度限制 · 无 5 小时限额', on: true }
+        ] },
+      { name: 'Max', tagline: '高强度开发',
+        price: { month: '659', year: '579.92' }, unit: '/月', origPrice: { year: '659' },
+        priceNote: { month: '按月计费', year: '按年计费' },
+        badge: { month: '首月立减 79.08元', year: '立减 948.96元' },
+        headline: { month: '820 亿 Credits', year: '9840 亿 Credits' },
+        headlineSub: '= 20 x Lite',
+        checks: [
+          { text: '支持 V2.5 全系模型（文本模型 / 全模态 / 语音）', on: true },
+          { text: '支持主流编程框架 OpenClaw / Codex / MiMo Claw 等', on: true },
+          { text: 'TTS 模型免费，限时免费使用', on: true },
+          { text: '夜间 0.8x 消耗，00:00—08:00（UTC+8）', on: true },
+          { text: '畅快使用，无额度限制 · 无 5 小时限额', on: true }
+        ] }
+    ]
+  },
+  {
+    name: '阿里千问', cat: 'token', link: 'https://platform.qianwenai.com/pricing/token-plan',
+    note: 'Token Plan 个人版：按 Credits 计量，7 天固定窗口限额；支持 qwen3.8 等多模态模型与 Harness 工具',
+    cur: '¥',
+    unit: '',
+    billing: [
+      { id: 'month',   label: '月包', sub: '月付' },
+      { id: 'quarter', label: '季包', sub: '季付' },
+      { id: 'year',    label: '年包', sub: '年付' }
+    ],
+    plans: [
+      { name: 'Lite 套餐',
+        price: { month: '39.00', quarter: '110.00', year: '420.00' },
+        origPrice: { month: '60.00/月', quarter: '180.00/季', year: '720.00/年' },
+        headline: '2,500 Credits / 7天',
+        checks: [
+          { text: '支持文本、视觉等多模态模型', on: true },
+          { text: '支持联网搜索、知识检索等 harness 工具', on: true },
+          { text: '可同时支持 1~2 个 Agent 并发运行', on: true }
+        ] },
+      { name: 'Standard 套餐', badge: 'Hot',
+        price: { month: '139.00', quarter: '396.00', year: '1510.00' },
+        origPrice: { month: '180.00/月', quarter: '540.00/季', year: '2160.00/年' },
+        headline: '10,000 Credits / 7天',
+        checks: [
+          { text: '4 倍于 Lite 套餐用量', on: true },
+          { text: '享受 Lite 套餐的所有权益', on: true },
+          { text: '可同时支持 3~4 个 Agent 并发运行', on: true }
+        ] },
+      { name: 'Pro 套餐',
+        price: { month: '499.00', quarter: '1420.00', year: '5600.00' },
+        origPrice: { month: '600.00/月', quarter: '1800.00/季', year: '7200.00/年' },
+        headline: '40,000 Credits / 7天',
+        checks: [
+          { text: '16 倍于 Lite 套餐用量', on: true },
+          { text: '享受 Standard 套餐的所有权益', on: true },
+          { text: '可同时支持 6~8 个 Agent 并发运行', on: true }
+        ] }
+    ]
+  },
+  {
+    name: '火山方舟 Coding', cat: 'coding', link: 'https://www.volcengine.com/activity/codingplan',
+    note: 'Coding Plan：Doubao / GLM / DeepSeek / Kimi / MiniMax 多模型自由切换，适配 Claude Code、Cursor 等主流编程工具',
+    cur: '¥',
+    billing: [
+      { id: 'month',   label: '月包', sub: '连续包月' },
+      { id: 'quarter', label: '季包', sub: '连续包季' },
+      { id: 'year',    label: '年包', sub: '连续包年' }
+    ],
+    plans: [
+      { name: 'Lite Plan', badge: '受邀再享9.5折',
+        price: { month: '9.90', quarter: '59.80', year: '419.80' },
+        unit: { month: '元/月', quarter: '元/季', year: '元/年' },
+        origPrice: { month: '40.00', quarter: '120.00', year: '480.00' },
+        priceNote: { month: '刊例价 ®：¥40.00 元/月', quarter: '刊例价 ®：¥120.00 元/季', year: '刊例价 ®：¥480.00 元/年' },
+        headline: '满足个人开发者轻量化需求',
+        checks: [
+          { text: '模型：Doubao、GLM、DeepSeek、Kimi、MiniMax 等', on: true },
+          { text: '适配：支持自由切换模型，或开启 Auto 模式', on: true },
+          { text: '工具：Claude Code、Cursor 等主流编程工具', on: true }
+        ] },
+      { name: 'Pro Plan', badge: '最受欢迎',
+        price: { month: '49.90', quarter: '299.80', year: '2099.80' },
+        unit: { month: '元/月', quarter: '元/季', year: '元/年' },
+        origPrice: { month: '200.00', quarter: '600.00', year: '2400.00' },
+        priceNote: { month: '刊例价 ®：¥200.00 元/月', quarter: '刊例价 ®：¥600.00 元/季', year: '刊例价 ®：¥2400.00 元/年' },
+        headline: '5 倍于 Lite 套餐的用量',
+        checks: [
+          { text: '能力：享受 Lite 套餐的所有能力和权益', on: true },
+          { text: '适配：满足高阶用户的大规模编程需求', on: true },
+          { text: '升级：用量为 Claude Max 数倍，Lite 套餐 5 倍', on: true }
+        ] }
+    ]
+  },
+  {
+    name: '火山方舟 Agent', cat: 'agent', link: 'https://www.volcengine.com/activity/agentplan',
+    note: 'Agent Plan：Small / Medium / Large / Max 四档，覆盖多模态与 Harness，支持多档额度与联网搜索 Harness',
+    cur: '¥',
+    billing: [
+      { id: 'month',   label: '月包', sub: '连续包月' },
+      { id: 'quarter', label: '季包', sub: '连续包季' },
+      { id: 'year',    label: '年包', sub: '连续包年' }
+    ],
+    plans: [
+      { name: 'Small', badge: '限时特惠',
+        price: { month: '9.90', quarter: '59.80', year: '419.80' },
+        unit: { month: '元/月', quarter: '元/季', year: '元/年' },
+        origPrice: { month: '40.00', quarter: '120.00', year: '480.00' },
+        priceNote: { month: '刊例价 ®：¥40.00 元/月', quarter: '刊例价 ®：¥120.00 元/季', year: '刊例价 ®：¥480.00 元/年' },
+        headline: '体验版本，仅供测试',
+        checks: [
+          { text: '每月 20,000 Agent 燃料值', on: true },
+          { text: '主流热门编程模型集合', on: true },
+          { text: 'Seedream 5.0 lite、向量化模型', on: true },
+          { text: '联网搜索专属 Harness 开箱即用', on: true }
+        ] },
+      { name: 'Medium', badge: '最受欢迎', featured: true,
+        price: { month: '49.90', quarter: '299.80', year: '2099.80' },
+        unit: { month: '元/月', quarter: '元/季', year: '元/年' },
+        origPrice: { month: '200.00', quarter: '600.00', year: '2400.00' },
+        priceNote: { month: '刊例价 ®：¥200.00 元/月', quarter: '刊例价 ®：¥600.00 元/季', year: '刊例价 ®：¥2400.00 元/年' },
+        headline: 'Agent 探索与应用',
+        checks: [
+          { text: '日常高频额度 5× Small 用量', on: true },
+          { text: '享受 Small 套餐所有权益', on: true },
+          { text: '多模态及联网搜索 Harness 升级，支持 Kimi K3', on: true }
+        ] },
+      { name: 'Large', badge: { quarter: '包季优惠', year: '包季优惠' },
+        price: { month: '500.00', quarter: '1455.00', year: '5700.00' },
+        unit: { month: '元/月', quarter: '元/季', year: '元/年' },
+        origPrice: { quarter: '1500.00', year: '6000.00' },
+        priceNote: { month: '', quarter: '刊例价 ®：¥1500.00 元/季', year: '刊例价 ®：¥6000.00 元/年' },
+        headline: '多模态 & Harness 深度应用',
+        checks: [
+          { text: '复杂重度开发 12.5× Small 用量', on: true },
+          { text: '享受 Medium 套餐所有权益', on: true },
+          { text: '支持 Seedance 2.0 和 Kimi K3', on: true },
+          { text: '高阶多模态及联网搜索 Harness', on: true }
+        ] },
+      { name: 'Max', badge: { quarter: '包季优惠', year: '包季优惠' },
+        price: { month: '1000.00', quarter: '2910.00', year: '11400.00' },
+        unit: { month: '元/月', quarter: '元/季', year: '元/年' },
+        origPrice: { quarter: '3000.00', year: '12000.00' },
+        priceNote: { month: '', quarter: '刊例价 ®：¥3000.00 元/季', year: '刊例价 ®：¥12000.00 元/年' },
+        headline: '多模态 & Harness 生产级应用',
+        checks: [
+          { text: '顶配旗舰额度 25× Small 用量', on: true },
+          { text: '享受 Large 套餐所有权益', on: true },
+          { text: '支持 Seedance 2.0 和 Kimi K3', on: true },
+          { text: '极致多模态及联网搜索 Harness', on: true }
+        ] }
+    ]
+  }
+];
+
+function renderSubs() {
+  const root = document.getElementById('subSections');
+  root.innerHTML = SUBS.map(p => {
+    const period = p.billing ? (subBillingPeriods[p.name] || p.billing[0].id) : null;
+    const cards = p.plans.map(pl => {
+      const price = (period && typeof pl.price === 'object') ? pl.price[period] : pl.price;
+      const note  = (period && typeof pl.priceNote === 'object') ? (pl.priceNote[period] || '') : (pl.priceNote || '');
+      const byP = (v) => { if (v == null) return undefined; if (typeof v === 'object') return period ? v[period] : undefined; return v; };
+      const unit  = byP(pl.unit) ?? byP(p.unit) ?? '/月';
+      const badge = pl.badge ? (typeof pl.badge === 'object' ? (pl.badge[period] || '') : pl.badge) : '';
+      // 仅保留主价格：去掉划线原价、刊例价备注、活动/折扣类标签（保留「最受欢迎/Hot」热度标签）
+      const showNote  = (note && note.indexOf('刊例价') === 0) ? '' : note;
+      const showBadge = badge && !/(立省|立减|首月|限时|包季|受邀|特惠|优惠|再享|折)/.test(badge) ? badge : '';
+      const headline = pl.headline ? (typeof pl.headline === 'object' ? (pl.headline[period] || '') : pl.headline) : '';
+      const hsub = pl.headlineSub ? (typeof pl.headlineSub === 'object' ? (pl.headlineSub[period] || '') : pl.headlineSub) : '';
+      const featureHtml = pl.checks
+        ? `<ul class="sub-checks">${headline ? `<li class="sub-headline"><span class="mk">★</span><span class="tx"><span class="sub-hval">${headline}</span>${hsub ? `<span class="sub-hsub">${hsub}</span>` : ''}</span></li>` : ''}${pl.checks.map(c => `
+            <li class="${c.on ? 'on' : ''} ${c.half ? 'half' : ''}"><span class="mk">✓</span><span class="tx">${c.text}</span></li>`).join('')}</ul>`
+        : `<ul class="sub-rows">${pl.rows.map(r => `<li><span>${r[0]}</span><b>${r[1]}</b></li>`).join('')}</ul>`;
+      return `
+      <div class="sub-card${pl.featured ? ' sub-card-featured' : ''}">
+        <div class="sub-card-top"><span class="sub-plan-name">${pl.name}</span>${showBadge ? `<span class="sub-badge">${showBadge}</span>` : ''}</div>
+        ${pl.tagline ? `<div class="sub-plan-sub">${pl.tagline}</div>` : ''}
+        <div class="sub-price"><span class="cur">${p.cur}</span><span class="num">${price}</span><span class="unit">${unit}</span></div>
+        <div class="sub-price-note">${showNote}</div>
+        ${featureHtml}
+      </div>`;
+    }).join('');
+    const billingToggle = p.billing ? `
+      <div class="toggle sub-billing">
+        ${p.billing.map(b => `<button data-period="${b.id}" class="${b.id === period ? 'active' : ''}" title="${b.sub}">${b.label}</button>`).join('')}
+      </div>` : '';
+    return `
+      <section class="sub-group" data-cat="${p.cat}" data-name="${p.name}">
+        <div class="sub-group-head">
+          <div class="group-title">
+            <h2>${p.name}</h2>
+            <a href="${p.link}" target="_blank" rel="noopener">官方来源</a>
+          </div>
+          <div class="sub-group-ctl">
+            ${billingToggle}
+            <span class="sub-cat-tag">${SUB_CAT_INFO[p.cat]}</span>
+          </div>
+        </div>
+        <p class="note">${p.note}</p>
+        <div class="sub-grid">${cards}</div>
+      </section>`;
+  }).join('');
+  applySubCatFilter();
+}
+
+let subCat = 'all';
+function applySubCatFilter() {
+  document.querySelectorAll('#subSections .sub-group').forEach(s => {
+    s.style.display = (subCat === 'all' || s.dataset.cat === subCat) ? '' : 'none';
+  });
+}
+document.querySelectorAll('#subCatFilter button').forEach(btn => btn.onclick = () => {
+  subCat = btn.dataset.c;
+  document.querySelectorAll('#subCatFilter button').forEach(b => b.classList.toggle('active', b === btn));
+  applySubCatFilter();
+});
+
+// 订阅计费周期（月包 / 季包 / 年包）—— 每个厂商各自独立，互不影响
+const subBillingPeriods = {}; // key = 厂商 name
+document.getElementById('subSections').addEventListener('click', e => {
+  const btn = e.target.closest('.sub-billing button');
+  if (!btn) return;
+  const sec = btn.closest('.sub-group');
+  const name = sec && sec.dataset.name;
+  if (!name) return;
+  const period = btn.dataset.period;
+  if (subBillingPeriods[name] === period) return;
+  subBillingPeriods[name] = period;
+  renderSubs(); // 重新渲染并保持 subCat 筛选
+});
+
+// 顶部视图切换：模型定价 / 订阅套餐
+const btnViewPricing = document.getElementById('btnViewPricing');
+const btnViewSubs = document.getElementById('btnViewSubs');
+const viewPricing = document.getElementById('view-pricing');
+const viewSubs = document.getElementById('view-subscribe');
+function setView(v) {
+  btnViewPricing.classList.toggle('active', v === 'pricing');
+  btnViewSubs.classList.toggle('active', v === 'subs');
+  viewPricing.style.display = v === 'pricing' ? '' : 'none';
+  viewSubs.style.display = v === 'subs' ? 'block' : 'none';
+  if (v === 'pricing') requestAnimationFrame(resizeAll); // 恢复被隐藏图表的尺寸
+}
+btnViewPricing.onclick = () => setView('pricing');
+btnViewSubs.onclick = () => setView('subs');
+// 支持 URL hash 直达订阅套餐视图（#subscribe）
+if (location.hash === '#subscribe') setView('subs');
+renderSubs();
 </script>
 </body>
 </html>
