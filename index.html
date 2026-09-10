@@ -3,704 +3,663 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark light">
 <title>农夫AI · NONGFU AI</title>
 <link rel="icon" type="image/png" href="assets/logo.ico">
+
+<!-- ===== Tailwind CSS（Play CDN）：语义色全部映射到 CSS 变量，随 data-theme 联动 ===== -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          app:     'rgb(var(--bg-rgb) / <alpha-value>)',
+          surface: 'rgb(var(--card-rgb) / <alpha-value>)',
+          raised:  'rgb(var(--raised-rgb) / <alpha-value>)',
+          line:    'rgb(var(--border-rgb) / <alpha-value>)',
+          linehi:  'rgb(var(--border-hover-rgb) / <alpha-value>)',
+          ink:     'rgb(var(--text-rgb) / <alpha-value>)',
+          muted:   'rgb(var(--muted-rgb) / <alpha-value>)',
+          faint:   'rgb(var(--faint-rgb) / <alpha-value>)',
+          brand:   'rgb(var(--primary-rgb) / <alpha-value>)',
+          warn:    'rgb(var(--warn-rgb) / <alpha-value>)'
+        },
+        fontFamily: {
+          sans: ['Inter', '"PingFang SC"', '"Microsoft YaHei"', 'system-ui', 'sans-serif'],
+          mono: ['"JetBrains Mono"', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace']
+        }
+      }
+    }
+  };
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  /* ===== 设计变量：默认暗色（品牌绿 #3ECF8E） ===== */
+  /* =========================================================================
+     设计令牌（Tech Dark Mode）
+     - 纯色变量：供 ECharts（cssVar）与自定义组件读取
+     - *-rgb 变量：供 Tailwind 语义色读取，使主题切换对工具类同样生效
+     ========================================================================= */
   :root {
     /* 背景三级 */
-    --bg: #0A0E0C;            /* 页面底 */
-    --surface: #101614;       /* 次级面：头部 / 大区块 */
-    --card: #151D19;          /* 卡片 */
-    --raised: #1A2420;        /* 卡片内嵌元素（图表区、分段控件、标签） */
+    --bg: #09090B;              --bg-rgb: 9 9 11;            /* zinc-950 */
+    --surface: #18181B;         --surface-rgb: 24 24 27;
+    --card: #18181B;            --card-rgb: 24 24 27;       /* zinc-900 */
+    --raised: #1C1C20;          --raised-rgb: 28 28 32;     /* 卡片内嵌：图表区 / 分段轨道 */
+    --active: #27272A;          --active-rgb: 39 39 42;     /* 分段控件选中态 zinc-800 */
     /* 描边 */
-    --border: #232E29;
-    --border-hover: #33443C;
-    /* 品牌色 */
-    --primary: #3ECF8E;
-    --primary-dim: #2BA673;
-    --primary-soft: rgba(62,207,142,.10);
-    --primary-line: rgba(62,207,142,.28);
+    --border: #27272A;          --border-rgb: 39 39 42;     /* zinc-800 */
+    --border-hover: #3F3F46;    --border-hover-rgb: 63 63 70;
+    /* 品牌色：紫色 → 靛蓝 */
+    --primary: #A855F7;         --primary-rgb: 168 85 247;
+    --primary-dim: #9333EA;
+    --primary-soft: rgba(168,85,247,.12);
+    --primary-line: rgba(168,85,247,.38);
+    --primary-glow: rgba(168,85,247,.55);
     /* 文字 */
-    --text: #E9F1EB;
-    --muted: #93A69A;
-    --faint: #5F7166;
-    /* 语义色：danger 仅用于真正的错误 / 危险提示 */
-    --danger: #F0616D;
-    --warn: #F0B35C;
-    --info: #6B8CFF;
-    /* 圆角 */
-    --r-sm: 8px;  --r-md: 14px;  --r-lg: 20px;
+    --text: #FAFAFA;            --text-rgb: 250 250 250;    /* zinc-50 */
+    --muted: #A1A1AA;           --muted-rgb: 161 161 170;   /* zinc-400 */
+    --faint: #71717A;           --faint-rgb: 113 113 122;   /* zinc-500 */
+    /* 语义色 */
+    --warn: #FBBF24;            --warn-rgb: 251 191 36;
+    --info: #818CF8;
+    /* 圆角 / 阴影 */
+    --r-sm: 10px; --r-md: 14px; --r-lg: 18px;
+    --shadow: 0 1px 2px rgba(0,0,0,.5), 0 12px 28px -18px rgba(0,0,0,.7);
+    --shadow-lift: 0 18px 40px -20px rgba(0,0,0,.8), 0 0 0 1px var(--border-hover);
     /* 图表通用色 */
-    --chart-grid: #232E29;
-    --chart-axis: #5F7166;
-    --chart-value: #E9F1EB;
-    --chart-series: #3ECF8E;   /* 单厂商 / 单系列一律品牌绿 */
+    --chart-grid: #27272A;
+    --chart-axis: #A1A1AA;
+    --chart-value: #FAFAFA;
+    --chart-series: #A855F7;
     /* 多厂商对比配色（固定取色顺序 + 备用色） */
-    --vendor-deepseek: #4C8DFF;
-    --vendor-kimi: #B57BFF;
-    --vendor-glm: #2BC8C8;
-    --vendor-minimax: #FF7A59;
-    --vendor-mimo: #F0B35C;
-    --vendor-qwen: #7BD88F;
-    --vendor-doubao: #F27BA0;
-    --vendor-alt: #9AA7B8;
-    /* 阴影 / 装饰 */
-    --shadow: 0 1px 2px rgba(0,0,0,.45), 0 10px 26px rgba(0,0,0,.26);
-    --shadow-lift: 0 14px 32px rgba(0,0,0,.42);
-    --hero-bg: linear-gradient(135deg, rgba(62,207,142,.10) 0%, rgba(62,207,142,0) 65%);
+    --vendor-deepseek: #818CF8;
+    --vendor-kimi: #C084FC;
+    --vendor-glm: #22D3EE;
+    --vendor-minimax: #FB923C;
+    --vendor-mimo: #FCD34D;
+    --vendor-qwen: #34D399;
+    --vendor-doubao: #F472B6;
+    --vendor-alt: #94A3B8;
   }
-  /* 亮色主题：同结构浅色变量（明度反向推导，品牌绿加深以保对比度） */
+  /* 亮色主题：同结构浅色变量（明度反向推导，紫色加深以保对比度） */
   body[data-theme="light"] {
-    --bg: #F3F6F4;
-    --surface: #FFFFFF;
-    --card: #FFFFFF;
-    --raised: #EDF2EF;
-    --border: #DBE3DE;
-    --border-hover: #B4C4BB;
-    --primary: #17A46B;
-    --primary-dim: #12855A;
-    --primary-soft: rgba(23,164,107,.10);
-    --primary-line: rgba(23,164,107,.28);
-    --text: #101A15;
-    --muted: #5D6F65;
-    --faint: #86968C;
-    --danger: #D6424F;
-    --warn: #A96C12;
-    --info: #3B5BDB;
-    --chart-grid: #D9E1DC;
-    --chart-axis: #86968C;
-    --chart-value: #101A15;
-    --chart-series: #17A46B;
-    --vendor-deepseek: #2F6FE4;
-    --vendor-kimi: #8B4FE0;
-    --vendor-glm: #12969B;
-    --vendor-minimax: #E05A33;
-    --vendor-mimo: #B7791F;
-    --vendor-qwen: #2F9E52;
-    --vendor-doubao: #D64B7C;
-    --vendor-alt: #6B7B8C;
-    --shadow: 0 1px 3px rgba(16,26,21,.06), 0 10px 26px rgba(16,26,21,.06);
-    --shadow-lift: 0 14px 32px rgba(16,26,21,.14);
-    --hero-bg: linear-gradient(135deg, rgba(23,164,107,.10) 0%, rgba(23,164,107,0) 65%);
+    --bg: #F4F4F5;              --bg-rgb: 244 244 245;
+    --surface: #FFFFFF;         --surface-rgb: 255 255 255;
+    --card: #FFFFFF;            --card-rgb: 255 255 255;
+    --raised: #F4F4F5;          --raised-rgb: 244 244 245;
+    --active: #FFFFFF;          --active-rgb: 255 255 255;
+    --border: #E4E4E7;          --border-rgb: 228 228 231;
+    --border-hover: #D4D4D8;    --border-hover-rgb: 212 212 216;
+    --primary: #7C3AED;         --primary-rgb: 124 58 237;
+    --primary-dim: #6D28D9;
+    --primary-soft: rgba(124,58,237,.09);
+    --primary-line: rgba(124,58,237,.32);
+    --primary-glow: rgba(124,58,237,.28);
+    --text: #18181B;            --text-rgb: 24 24 27;
+    --muted: #52525B;           --muted-rgb: 82 82 91;
+    --faint: #71717A;           --faint-rgb: 113 113 122;
+    --warn: #B45309;            --warn-rgb: 180 83 9;
+    --info: #4F46E5;
+    --shadow: 0 1px 3px rgba(24,24,27,.06), 0 12px 28px -18px rgba(24,24,27,.18);
+    --shadow-lift: 0 18px 40px -22px rgba(24,24,27,.28), 0 0 0 1px var(--border-hover);
+    --chart-grid: #E4E4E7;
+    --chart-axis: #52525B;
+    --chart-value: #18181B;
+    --chart-series: #7C3AED;
+    --vendor-deepseek: #4F46E5;
+    --vendor-kimi: #9333EA;
+    --vendor-glm: #0891B2;
+    --vendor-minimax: #EA580C;
+    --vendor-mimo: #B45309;
+    --vendor-qwen: #059669;
+    --vendor-doubao: #DB2777;
+    --vendor-alt: #64748B;
   }
+
   body {
-    font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
-    background: var(--bg);
+    margin: 0;
+    background-color: var(--bg);
     color: var(--text);
-    padding: 0 24px 32px;
-    transition: background-color .25s, color .25s;
+    font-family: Inter, "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
+    transition: background-color .25s ease, color .25s ease;
   }
-  /* 宽屏拉宽：92% 视口宽，上限 1760px */
-  .container { width: min(92%, 1760px); margin: 0 auto; }
-  header {
-    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;
-    position: sticky; top: 0; z-index: 300;
-    background: var(--surface); padding: 12px 0; margin-bottom: 20px;
-    border-bottom: 1px solid var(--border);
-    transition: background-color .25s, border-color .25s;
-  }
-  h1 { font-size: 24px; font-weight: 600; }
-  .controls { display: flex; gap: 12px; flex-wrap: wrap; }
-  /* ===== 全站分段控件统一风格（柱状/折线、升/降序、月/季/年包、各筛选组） ===== */
-  .toggle {
-    display: inline-flex; align-items: center; flex-wrap: wrap; gap: 2px;
+  :focus-visible { outline: 2px solid var(--primary-line); outline-offset: 2px; border-radius: 6px; }
+
+  /* ===== 分段控制器（Segmented Control）：JS 仅切换 .active，故选中态用组件类统一表达 ===== */
+  .seg {
+    display: inline-flex; flex-wrap: wrap; align-items: center; gap: 2px;
+    padding: 3px; border-radius: var(--r-md);
     background: var(--raised); border: 1px solid var(--border);
-    border-radius: var(--r-md); padding: 4px;
-    transition: background-color .25s, border-color .25s;
+    transition: background-color .25s ease, border-color .25s ease;
   }
-  .toggle button {
-    border: none; background: transparent; padding: 8px 16px; font-size: 13px; line-height: 1.2;
-    border-radius: var(--r-sm); cursor: pointer; color: var(--muted); font-family: inherit;
-    transition: background-color .2s, color .2s, box-shadow .2s;
+  .seg-btn {
+    border: 1px solid transparent; background: transparent; color: var(--muted);
+    padding: 7px 14px; border-radius: var(--r-sm); font-size: 13px; font-weight: 500;
+    line-height: 1.25; white-space: nowrap; cursor: pointer; font-family: inherit;
+    transition: background-color .18s ease, color .18s ease, box-shadow .18s ease;
   }
-  .toggle button:hover { color: var(--text); }
-  .toggle button.active {
-    background: var(--primary-soft); color: var(--primary); font-weight: 600;
-    box-shadow: inset 0 0 0 1px var(--primary-line);
+  .seg-btn:hover { color: var(--text); }
+  .seg-btn.active {
+    background: var(--active); color: var(--text); font-weight: 600;
+    box-shadow: 0 1px 2px rgba(0,0,0,.28), inset 0 0 0 1px var(--border-hover);
   }
-  .note { font-size: 13px; color: var(--muted); margin-bottom: 16px; line-height: 1.7; }
-  .note .warn { color: var(--warn); font-weight: 600; }
-  .group { margin-top: 32px; }
-  .group-head {
-    display: flex; align-items: center; justify-content: space-between;
-    flex-wrap: wrap; gap: 12px; margin-bottom: 6px;
+  body[data-theme="light"] .seg-btn.active { box-shadow: 0 1px 2px rgba(24,24,27,.10), inset 0 0 0 1px var(--border); }
+
+  /* ===== 顶部导航（毛玻璃 Pill） ===== */
+  .nav-link {
+    display: inline-flex; align-items: center; padding: 7px 14px; border-radius: var(--r-sm);
+    font-size: 13px; font-weight: 500; color: var(--muted); text-decoration: none;
+    transition: background-color .2s ease, color .2s ease, box-shadow .2s ease;
   }
-  .group-head h2 { font-size: 18px; font-weight: 600; }
-  .group-title { display: flex; align-items: baseline; gap: 10px; }
-  .group-title a { font-size: 12px; color: var(--info); text-decoration: none; }
-  .group-title a:hover { text-decoration: underline; }
-  .grid {
-    display: grid; grid-template-columns: repeat(3, 1fr);
-    gap: 20px;
+  .nav-link:hover { color: var(--text); }
+  .nav-link.active {
+    color: var(--text); font-weight: 600; background: var(--active);
+    box-shadow: inset 0 0 0 1px var(--border-hover);
   }
-  /* 类目多的组（如 Qwen）通栏展示，避免 X 轴拥挤 */
-  .grid.stack { grid-template-columns: 1fr; }
-  /* 窄屏降级：两列 / 单列 */
-  @media (max-width: 1200px) { .grid { grid-template-columns: repeat(2, 1fr); } }
-  @media (max-width: 760px) { .grid { grid-template-columns: 1fr; } }
-  .card {
-    background: var(--card); border: 1px solid var(--border); border-radius: var(--r-lg);
-    padding: 18px; box-shadow: var(--shadow);
-    min-width: 0; /* 允许 grid 项收缩，滚动由内部 .chart-wrap 承担 */
-    transition: background-color .25s, border-color .2s, box-shadow .25s;
-  }
-  .card:hover { border-color: var(--border-hover); }
-  .card h3 { font-size: 15px; font-weight: 600; margin-bottom: 10px; }
+
+  /* ===== 说明文本 ===== */
+  .note { font-size: 13px; line-height: 1.75; color: var(--muted); }
+  .note .warn, .warn { color: var(--warn); font-weight: 600; }
+
+  /* ===== 图表容器：高度固定，窄屏横向滚动而非挤压 ===== */
   .chart { width: 100%; height: 260px; }
-  /* 卡片内图表区域：内嵌底色，与卡片拉开层次；窄屏横向滚动而非挤压 */
   .chart-wrap {
-    overflow-x: auto; background: var(--raised);
-    border: 1px solid var(--border); border-radius: var(--r-md); padding: 8px;
-    transition: background-color .25s, border-color .25s;
+    overflow-x: auto; padding: 8px;
+    background: var(--raised); border: 1px solid var(--border); border-radius: var(--r-md);
+    transition: background-color .25s ease, border-color .25s ease;
   }
   .chart.qwen-w { min-width: 880px; }
   .chart.db-w { min-width: 1440px; }
-  /* 窄屏统一处理：全部分组图表横向滑动；汇总图更宽以容纳左侧模型名列 */
   @media (max-width: 760px) {
     .chart { min-width: 380px; }
     .chart.sum-w { min-width: 520px; }
   }
-  /* 汇总模块：系列颜色图例 */
-  .legend { display: flex; flex-wrap: wrap; gap: 14px; margin: 0 0 16px; font-size: 12px; color: var(--muted); }
-  .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
-  /* 全局筛选栏：多选场景，沿用统一分段控件样式，仅保留换行 */
-  .filters { margin: 0 0 28px; }
-  .filter-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
-  .filter-row:last-child { margin-bottom: 0; }
-  .filter-label { font-size: 13px; color: var(--muted); min-width: 56px; }
-  .filters .toggle { gap: 4px; }
-  /* 品牌头部：Logo + 站名 + 导航 */
-  .brand { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--text); }
-  .brand img { width: 44px; height: 44px; border-radius: 12px; box-shadow: var(--shadow); }
-  .brand-text { font-size: 20px; font-weight: 700; line-height: 1.15; display: flex; flex-direction: column; }
-  .brand-text em { font-style: normal; font-size: 10px; font-weight: 600; letter-spacing: 2.5px; color: var(--faint); }
-  /* 头部右侧：导航链接（平铺）+ 主题图标按钮 */
-  .header-right { display: flex; align-items: center; gap: 10px; }
-  .nav-links { display: flex; gap: 4px; flex-wrap: wrap; }
-  .nav-links a {
-    font-size: 14px; color: var(--muted); text-decoration: none;
-    padding: 8px 14px; border-radius: var(--r-sm);
-    transition: color .2s, background-color .2s, box-shadow .2s;
-  }
-  .nav-links a:hover { color: var(--text); background: var(--raised); }
-  /* 当前页面对应导航项高亮 */
-  .nav-links a.active {
-    color: var(--primary); font-weight: 600; background: var(--primary-soft);
-    box-shadow: inset 0 0 0 1px var(--primary-line);
-  }
-  .icon-btn {
-    width: 38px; height: 38px; border: 1px solid var(--border); border-radius: var(--r-sm);
-    background: var(--raised); color: var(--muted); cursor: pointer; padding: 0;
-    display: inline-flex; align-items: center; justify-content: center;
-    transition: color .2s, border-color .2s, background-color .2s; font-family: inherit;
-  }
-  .icon-btn:hover { border-color: var(--border-hover); color: var(--primary); }
-  .icon-btn svg { width: 20px; height: 20px; }
-  /* 键盘可达性 */
-  :focus-visible { outline: 2px solid var(--primary-line); outline-offset: 2px; }
-  /* 细滚动条（图表横向滚动容器） */
+  /* 细滚动条 */
   .chart-wrap::-webkit-scrollbar, body::-webkit-scrollbar { height: 10px; width: 10px; }
   .chart-wrap::-webkit-scrollbar-thumb, body::-webkit-scrollbar-thumb {
     background: var(--border-hover); border-radius: 999px;
   }
   .chart-wrap::-webkit-scrollbar-track, body::-webkit-scrollbar-track { background: transparent; }
-  /* 模块视图顶部工具条（说明 + 控制开关） */
-  .view-toolbar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; }
-  .view-toolbar .note { margin: 0; }
-  /* 首页 Hero：Logo + 主副标语 */
-  .hero {
-    text-align: center; padding: 60px 24px 48px; margin-top: 12px;
-    background: var(--surface); background-image: var(--hero-bg);
-    border: 1px solid var(--border); border-radius: var(--r-lg);
-    transition: background-color .25s, border-color .25s;
-  }
-  .hero-logo { width: 140px; height: 140px; border-radius: 32px; box-shadow: var(--shadow-lift); }
-  .hero-title { font-size: 42px; font-weight: 700; margin-top: 22px; letter-spacing: 2px; }
-  .hero-title-en { font-size: 14px; font-weight: 600; letter-spacing: 6px; color: var(--faint); margin-top: 4px; }
-  .hero-slogan { font-size: 22px; font-weight: 600; margin-top: 26px; color: var(--primary); }
-  .hero-slogan-sub { font-size: 15px; color: var(--muted); margin-top: 10px; }
-  /* 首页模块导航卡片 */
-  .modules { margin-top: 36px; }
-  /* 轨道最小宽 min(340px,100%)：窄屏容器不足 340px 时收缩为通栏，防止横向溢出 */
-  .module-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(340px, 100%), 1fr)); gap: 22px; }
-  .module-card {
-    display: flex; gap: 20px; background: var(--card); border: 1px solid var(--border);
-    border-radius: var(--r-lg); padding: 22px; box-shadow: var(--shadow);
-    text-decoration: none; color: var(--text);
-    transition: transform .2s, border-color .2s, box-shadow .2s, background-color .25s;
-  }
-  .module-card:hover { transform: translateY(-4px); border-color: var(--border-hover); box-shadow: var(--shadow-lift); }
-  .module-illus {
-    flex: none; width: 190px; display: flex; align-items: center;
-    background: var(--raised); border: 1px solid var(--border); border-radius: var(--r-md); padding: 12px;
-  }
-  .module-illus svg { width: 100%; height: auto; }
-  .module-body { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
-  .module-body h3 { font-size: 17px; font-weight: 600; }
-  .module-body p { font-size: 13px; color: var(--muted); line-height: 1.7; }
-  .module-tags { display: flex; flex-wrap: wrap; gap: 6px; }
-  .module-tags span {
-    font-size: 11px; color: var(--muted); background: var(--raised);
-    border: 1px solid var(--border); border-radius: 999px; padding: 2px 10px;
-  }
-  .module-cta { margin-top: auto; font-size: 14px; font-weight: 600; color: var(--primary); }
-  .module-cta i { font-style: normal; display: inline-block; transition: transform .2s; }
-  .module-card:hover .module-cta i { transform: translateX(4px); }
-  .site-footer { margin-top: 48px; padding-top: 18px; border-top: 1px dashed var(--border); text-align: center; font-size: 12px; color: var(--faint); }
-  /* 模块插画 SVG 配色（随主题变量联动） */
+
+  /* ===== 首页模块插画 SVG 配色（随主题变量联动） ===== */
   .il-axis { stroke: var(--faint); stroke-width: 2; stroke-linecap: round; }
-  .il-grid { stroke: var(--border); stroke-width: 1; stroke-dasharray: 3 5; }
+  .il-grid { stroke: var(--border-hover); stroke-width: 1; stroke-dasharray: 3 5; }
   .il-cur { fill: var(--faint); font-size: 15px; font-weight: 700; }
   .il-card-back { fill: var(--raised); stroke: var(--border); }
   .il-card-front { fill: var(--card); stroke: var(--border-hover); }
   .il-card-head { fill: var(--primary); }
   .il-price { fill: var(--text); font-size: 20px; font-weight: 700; }
   .il-check { stroke: var(--primary); stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
-  .il-line { stroke: var(--border); stroke-width: 5; stroke-linecap: round; }
-  /* 首页插画为「多厂商对比」示意：按多厂商取色顺序上色 */
+  .il-line { stroke: var(--border-hover); stroke-width: 5; stroke-linecap: round; }
   .il-b1 { fill: var(--vendor-deepseek); }
   .il-b2 { fill: var(--vendor-kimi); }
   .il-b3 { fill: var(--vendor-glm); }
   .il-b4 { fill: var(--vendor-minimax); }
   .il-b5 { fill: var(--vendor-mimo); }
   .il-b6 { fill: var(--vendor-qwen); }
-  @media (max-width: 560px) {
-    body { padding: 0 14px 32px; }
-    .hero { padding: 40px 16px 32px; }
-    .hero-logo { width: 108px; height: 108px; }
-    .hero-title { font-size: 32px; }
-    .hero-slogan { font-size: 17px; }
-    .module-card { flex-direction: column; padding: 18px; }
-    .module-illus { width: 100%; }
-  }
-  /* 订阅套餐模块 */
-  #view-subscribe .note { margin-bottom: 18px; }
-  #view-subscribe .filters { margin-bottom: 24px; }
-  .sub-group { margin-top: 32px; }
-  .sub-group-head {
-    display: flex; align-items: center; justify-content: space-between;
-    flex-wrap: wrap; gap: 12px; margin-bottom: 6px;
-  }
-  /* 类型标签（Coding / Token / 会员 / Agent）统一为品牌徽章风格 */
-  .sub-cat-tag {
-    font-size: 12px; font-weight: 600; padding: 3px 12px; border-radius: 999px;
-    border: 1px solid var(--primary-line); color: var(--primary); background: var(--primary-soft);
-    white-space: nowrap;
-  }
-  .sub-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 16px; }
+
+  /* ===== 订阅套餐：卡片基础结构（CSS 兜底，视觉细节由工具类叠加） ===== */
+  #subSections { display: flex; flex-direction: column; gap: 40px; }
+  .sub-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(236px, 1fr)); gap: 18px; }
   .sub-card {
-    background: var(--card); border: 1px solid var(--border); border-radius: var(--r-lg);
-    padding: 16px 18px; box-shadow: var(--shadow); display: flex; flex-direction: column;
-    gap: 10px; transition: background-color .25s, border-color .2s, box-shadow .25s;
+    position: relative; display: flex; flex-direction: column; gap: 10px;
+    padding: 20px; border-radius: var(--r-lg);
+    background-color: var(--card); border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    transition: transform .25s ease, border-color .25s ease, box-shadow .25s ease, background-color .25s ease;
   }
-  .sub-card:hover { border-color: var(--border-hover); }
-  .sub-card.sub-card-featured { border-color: var(--primary-line); border-width: 2px; box-shadow: var(--shadow-lift); }
-  .sub-card.sub-card-featured .sub-plan-name { color: var(--primary); }
-  .sub-card-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-  .sub-plan-name { font-size: 14px; font-weight: 600; }
-  .sub-price { display: flex; align-items: baseline; gap: 2px; }
-  .sub-price .cur { font-size: 14px; font-weight: 600; color: var(--muted); }
-  .sub-price .num { font-size: 28px; font-weight: 700; line-height: 1; color: var(--text); }
+  .sub-card:hover { transform: translateY(-4px); border-color: var(--border-hover); box-shadow: var(--shadow-lift); }
+  /* 推荐套餐特化：紫色渐变描边 + 光晕 */
+  .sub-card-featured {
+    border-color: var(--primary-line); padding-top: 24px;
+    background-image: linear-gradient(180deg, var(--primary-soft) 0%, rgba(0,0,0,0) 46%);
+    box-shadow: 0 0 0 1px var(--primary-line), 0 26px 60px -30px var(--primary-glow);
+  }
+  .sub-card-featured:hover {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 1px var(--primary), 0 30px 70px -28px var(--primary-glow);
+  }
+  .sub-price { display: flex; align-items: baseline; gap: 4px; }
+  .sub-price .cur { font-size: 15px; font-weight: 600; color: var(--muted); }
+  .sub-price .num { font-size: 36px; font-weight: 800; line-height: 1; letter-spacing: -.02em; color: var(--text); }
   .sub-price .unit { font-size: 12px; color: var(--faint); }
-  /* 「按月计费」等说明属中性提示，用琥珀 --warn，不再使用红色 */
-  .sub-price-note { font-size: 11px; color: var(--warn); min-height: 15px; }
-  .sub-rows { list-style: none; display: flex; flex-direction: column; gap: 6px; border-top: 1px dashed var(--border); padding-top: 10px; margin-top: auto; }
-  .sub-rows li { display: flex; justify-content: space-between; gap: 12px; font-size: 12px; }
-  .sub-rows li span { color: var(--faint); }
-  .sub-rows li b { font-weight: 600; color: var(--text); text-align: right; }
-  /* 厂商分组头部控制区（计费周期切换 + 类型标签） */
-  .sub-group-ctl { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-  .sub-billing button { min-width: 56px; }
-  /* 卡片副标题 / 原价划线 / 推荐徽标 */
-  .sub-plan-sub { font-size: 12px; color: var(--muted); margin-top: -6px; }
-  .sub-orig { font-size: 12px; color: var(--faint); text-decoration: line-through; margin-left: 6px; }
-  /* 「最受欢迎」等徽章：统一品牌徽章风格 */
   .sub-badge {
-    font-size: 10px; font-weight: 600; color: var(--primary); background: var(--primary-soft);
-    border: 1px solid var(--primary-line); padding: 2px 8px; border-radius: 999px; white-space: nowrap;
+    font-size: 10px; font-weight: 600; padding: 3px 9px; border-radius: 999px; white-space: nowrap;
+    color: var(--primary); background: var(--primary-soft); border: 1px solid var(--primary-line);
   }
-  .sub-badge.sub-badge-save { color: var(--muted); background: var(--raised); border-color: var(--border); }
-  /* 会员类卡片：权益勾选清单（✓ 提供 / 减弱半勾） */
-  .sub-checks {
-    list-style: none; display: flex; flex-direction: column; gap: 8px;
-    border-top: 1px dashed var(--border); padding-top: 10px; margin-top: auto;
+  /* 顶部高亮 Tag：渐变色胶囊 */
+  .sub-badge-top {
+    position: absolute; top: -11px; left: 20px;
+    color: #fff; border: none; font-weight: 700; letter-spacing: .04em;
+    background-image: linear-gradient(90deg, #A855F7 0%, #6366F1 100%);
+    box-shadow: 0 10px 26px -10px var(--primary-glow);
   }
-  .sub-checks li { display: flex; align-items: flex-start; gap: 8px; font-size: 12px; color: var(--faint); line-height: 1.4; }
-  .sub-checks li .mk { width: 14px; flex: none; text-align: center; color: var(--faint); }
+  .sub-cat-tag {
+    font-size: 11px; font-weight: 600; padding: 3px 12px; border-radius: 999px; white-space: nowrap;
+    color: var(--primary); background: var(--primary-soft); border: 1px solid var(--primary-line);
+  }
+  .sub-billing button { min-width: 58px; }
+  /* 权益清单：状态配色（勾选图标为 SVG，颜色由 li 状态驱动） */
+  .sub-checks { border-top: 1px dashed var(--border); margin-top: auto; padding-top: 12px; }
+  .sub-checks li .mk { color: var(--faint); opacity: .45; }
   .sub-checks li.on { color: var(--text); }
-  .sub-checks li.on .mk { color: var(--primary); font-weight: 700; }
+  .sub-checks li.on .mk { color: var(--primary); opacity: 1; }
   .sub-checks li.half { color: var(--faint); }
-  .sub-checks li.half .mk { color: var(--faint); opacity: .6; }
-  .sub-checks li.sub-headline { color: var(--text); font-weight: 600; }
-  .sub-checks li.sub-headline .mk { color: var(--primary); }
-  .sub-checks li.sub-headline .sub-hval { display: block; font-weight: 700; }
-  .sub-checks li.sub-headline .sub-hsub { display: block; font-weight: 400; font-size: 11px; color: var(--faint); margin-top: 2px; }
+  .sub-checks li.sub-headline { color: var(--text); }
+  .sub-checks li.sub-headline .mk { color: var(--primary); opacity: 1; }
+  .sub-hval { display: block; font-weight: 700; }
+  .sub-hsub { display: block; font-weight: 400; font-size: 11px; color: var(--faint); margin-top: 2px; }
+
+  @media (max-width: 560px) {
+    .sub-card { padding: 18px; }
+    .sub-price .num { font-size: 32px; }
+  }
 </style>
 </head>
-<body data-theme="dark">
-<div class="container">
-  <header>
-    <a class="brand" href="#home">
-      <img src="assets/logo.png" alt="农夫AI Logo">
-      <span class="brand-text">农夫AI<em>NONGFU AI</em></span>
+<body data-theme="dark" class="antialiased">
+
+<!-- ============================= Header ============================= -->
+<header class="sticky top-0 z-50 border-b border-line/50 bg-app/80 backdrop-blur-md">
+  <div class="mx-auto flex w-[min(92%,1760px)] flex-wrap items-center justify-between gap-3 py-3">
+    <a class="flex items-center gap-3 no-underline" href="#home">
+      <img src="assets/logo.png" alt="农夫AI Logo" class="h-10 w-10 rounded-xl shadow-lg shadow-purple-500/10 ring-1 ring-line">
+      <span class="flex flex-col leading-tight">
+        <span class="text-lg font-bold tracking-tight text-ink">农夫AI</span>
+        <span class="font-mono text-[10px] font-semibold tracking-[0.22em] text-faint">NONGFU AI</span>
+      </span>
     </a>
-    <div class="header-right">
-      <nav class="nav-links">
-        <a href="#pricing" id="navPricing">API 价格</a>
-        <a href="#subscribe" id="navSubs">订阅套餐</a>
+    <div class="flex items-center gap-2 sm:gap-3">
+      <nav class="flex items-center gap-1 rounded-xl border border-line/70 bg-raised/60 p-1">
+        <a href="#pricing" id="navPricing" class="nav-link">API 价格</a>
+        <a href="#subscribe" id="navSubs" class="nav-link">订阅套餐</a>
       </nav>
-      <button id="btnTheme" class="icon-btn" title="切换明亮 / 暗黑主题" aria-label="切换主题">
-        <svg id="iconSun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+      <button id="btnTheme" title="切换明亮 / 暗黑主题" aria-label="切换主题"
+        class="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-line/70 bg-raised/60 text-muted transition-colors duration-200 hover:border-brand/50 hover:text-brand">
+        <svg id="iconSun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="h-[18px] w-[18px]">
           <circle cx="12" cy="12" r="4"/>
           <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>
         </svg>
-        <svg id="iconMoon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none">
+        <svg id="iconMoon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-[18px] w-[18px]" style="display:none">
           <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
         </svg>
       </button>
     </div>
-  </header>
+  </div>
+</header>
 
-  <!-- 首页：Logo + 主副标语 + 模块概要导航 -->
+<main class="mx-auto w-[min(92%,1760px)] pb-12">
+
+  <!-- ========================= 首页：Hero + Bento Grid ========================= -->
   <div id="view-home">
-    <section class="hero">
-      <img class="hero-logo" src="assets/logo.png" alt="农夫AI Logo">
-      <h1 class="hero-title">农夫AI</h1>
-      <p class="hero-title-en">NONGFU AI</p>
-      <p class="hero-slogan">我们不生产AI，我们只是AI的搬运工！</p>
-      <p class="hero-slogan-sub">渗透底层，方显伟大！</p>
-    </section>
-
-    <section class="modules">
-      <div class="module-grid">
-        <a class="module-card" href="#pricing">
-          <div class="module-illus">
-            <svg viewBox="0 0 300 170" role="img" aria-label="API 价格柱状图示意">
-              <line x1="34" y1="14" x2="34" y2="140" class="il-axis"/>
-              <line x1="34" y1="140" x2="288" y2="140" class="il-axis"/>
-              <line x1="34" y1="98" x2="288" y2="98" class="il-grid"/>
-              <line x1="34" y1="56" x2="288" y2="56" class="il-grid"/>
-              <text x="24" y="28" class="il-cur">¥</text>
-              <rect x="54"  y="106" width="24" height="34"  rx="4" class="il-b1"/>
-              <rect x="92"  y="78"  width="24" height="62"  rx="4" class="il-b2"/>
-              <rect x="130" y="94"  width="24" height="46"  rx="4" class="il-b3"/>
-              <rect x="168" y="50"  width="24" height="90"  rx="4" class="il-b4"/>
-              <rect x="206" y="70"  width="24" height="70"  rx="4" class="il-b5"/>
-              <rect x="244" y="34"  width="24" height="106" rx="4" class="il-b6"/>
-            </svg>
-          </div>
-          <div class="module-body">
-            <h3>API 价格</h3>
-            <p>七大模型厂商 API 定价横向对比：缓存命中 / 未命中输入与输出价格一目了然，支持全系列汇总排序、系列与图表筛选、柱状 / 折线切换。</p>
-            <div class="module-tags">
-              <span>DeepSeek</span><span>Kimi</span><span>GLM</span><span>MiniMax</span>
-              <span>MiMo</span><span>Qwen</span><span>Doubao</span>
-            </div>
-            <span class="module-cta">进入模块 <i>→</i></span>
-          </div>
-        </a>
-        <a class="module-card" href="#subscribe">
-          <div class="module-illus">
-            <svg viewBox="0 0 300 170" role="img" aria-label="订阅套餐卡片示意">
-              <g transform="rotate(-9 105 95)">
-                <rect x="48" y="40" width="114" height="100" rx="12" class="il-card-back"/>
-              </g>
-              <rect x="122" y="30" width="134" height="112" rx="12" class="il-card-front"/>
-              <rect x="122" y="30" width="134" height="24" rx="12" class="il-card-head"/>
-              <rect x="122" y="44" width="134" height="10" class="il-card-head"/>
-              <text x="138" y="92" class="il-price">¥99</text>
-              <path d="M138 108 l4 4 7-8" class="il-check"/>
-              <line x1="156" y1="108" x2="238" y2="108" class="il-line"/>
-              <path d="M138 126 l4 4 7-8" class="il-check"/>
-              <line x1="156" y1="126" x2="222" y2="126" class="il-line"/>
-            </svg>
-          </div>
-          <div class="module-body">
-            <h3>订阅套餐</h3>
-            <p>主流厂商订阅套餐汇总：Coding Plan / Token Plan / 会员 / Agent Plan 四大类型，月包、季包、年包价格与权益清单一屏看清。</p>
-            <div class="module-tags">
-              <span>Coding Plan</span><span>Token Plan</span><span>会员套餐</span><span>Agent Plan</span>
-            </div>
-            <span class="module-cta">进入模块 <i>→</i></span>
-          </div>
-        </a>
+    <section class="relative isolate overflow-hidden px-2 pb-16 pt-14 text-center sm:pt-20">
+      <!-- 虚化紫蓝径向光晕 -->
+      <div aria-hidden="true" class="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+        <div class="absolute left-1/2 top-[-220px] h-[560px] w-[560px] -translate-x-1/2 rounded-full bg-purple-600/25 blur-[130px]"></div>
+        <div class="absolute right-[8%] top-[60px] h-[380px] w-[380px] rounded-full bg-indigo-500/25 blur-[130px]"></div>
+        <div class="absolute bottom-[-180px] left-[4%] h-[340px] w-[340px] rounded-full bg-fuchsia-500/10 blur-[130px]"></div>
       </div>
+
+      <img class="mx-auto h-28 w-28 rounded-3xl shadow-2xl shadow-purple-500/20 ring-1 ring-line sm:h-32 sm:w-32" src="assets/logo.png" alt="农夫AI Logo">
+
+      <h1 class="mt-8 text-5xl font-extrabold tracking-tight text-ink sm:text-6xl">
+        农夫<span class="bg-gradient-to-r from-purple-400 to-indigo-500 bg-clip-text text-transparent">AI</span>
+      </h1>
+      <p class="mt-3 font-mono text-[11px] font-semibold tracking-[0.42em] text-faint">NONGFU AI</p>
+
+      <p class="mx-auto mt-7 max-w-3xl text-xl font-semibold sm:text-2xl">
+        我们不生产<span class="bg-gradient-to-r from-purple-400 to-indigo-500 bg-clip-text text-transparent">AI</span>，我们只是AI的搬运工！
+      </p>
+      <p class="mt-3 text-sm text-muted sm:text-[15px]">渗透底层，方显伟大！</p>
     </section>
 
-    <footer class="site-footer">农夫AI · NONGFU AI —— 我们不生产AI，我们只是AI的搬运工！</footer>
+    <!-- Bento Grid 入口卡片 -->
+    <section class="mt-6 grid gap-6 lg:grid-cols-5">
+      <a class="group relative flex flex-col gap-6 overflow-hidden rounded-2xl border border-line/80 bg-surface/80 p-6 shadow-xl shadow-black/20 transition-all duration-300 hover:-translate-y-1 hover:border-brand/40 hover:shadow-brand/10 sm:flex-row sm:items-center lg:col-span-3" href="#pricing">
+        <div aria-hidden="true" class="pointer-events-none absolute -right-24 -top-24 h-56 w-56 rounded-full bg-purple-600/10 blur-3xl transition-colors duration-300 group-hover:bg-purple-600/25"></div>
+        <div class="relative w-full flex-none rounded-xl border border-line/70 bg-raised/70 p-4 sm:w-[248px]">
+          <svg viewBox="0 0 300 170" class="h-auto w-full" role="img" aria-label="API 价格柱状图示意">
+            <line x1="34" y1="14" x2="34" y2="140" class="il-axis"/>
+            <line x1="34" y1="140" x2="288" y2="140" class="il-axis"/>
+            <line x1="34" y1="98" x2="288" y2="98" class="il-grid"/>
+            <line x1="34" y1="56" x2="288" y2="56" class="il-grid"/>
+            <text x="24" y="28" class="il-cur">¥</text>
+            <rect x="54"  y="106" width="24" height="34"  rx="4" class="il-b1"/>
+            <rect x="92"  y="78"  width="24" height="62"  rx="4" class="il-b2"/>
+            <rect x="130" y="94"  width="24" height="46"  rx="4" class="il-b3"/>
+            <rect x="168" y="50"  width="24" height="90"  rx="4" class="il-b4"/>
+            <rect x="206" y="70"  width="24" height="70"  rx="4" class="il-b5"/>
+            <rect x="244" y="34"  width="24" height="106" rx="4" class="il-b6"/>
+          </svg>
+        </div>
+        <div class="relative flex min-w-0 flex-col gap-3">
+          <h3 class="text-lg font-semibold text-ink">API 价格</h3>
+          <p class="text-[13px] leading-relaxed text-muted">七大模型厂商 API 定价横向对比：缓存命中 / 未命中输入与输出价格一目了然，支持全系列汇总排序、系列与图表筛选、柱状 / 折线切换。</p>
+          <div class="flex flex-wrap gap-2">
+            <span class="rounded-full border border-line/70 bg-raised/60 px-2.5 py-1 font-mono text-[10px] text-muted">DeepSeek</span>
+            <span class="rounded-full border border-line/70 bg-raised/60 px-2.5 py-1 font-mono text-[10px] text-muted">Kimi</span>
+            <span class="rounded-full border border-line/70 bg-raised/60 px-2.5 py-1 font-mono text-[10px] text-muted">GLM</span>
+            <span class="rounded-full border border-line/70 bg-raised/60 px-2.5 py-1 font-mono text-[10px] text-muted">MiniMax</span>
+            <span class="rounded-full border border-line/70 bg-raised/60 px-2.5 py-1 font-mono text-[10px] text-muted">MiMo</span>
+            <span class="rounded-full border border-line/70 bg-raised/60 px-2.5 py-1 font-mono text-[10px] text-muted">Qwen</span>
+            <span class="rounded-full border border-line/70 bg-raised/60 px-2.5 py-1 font-mono text-[10px] text-muted">Doubao</span>
+          </div>
+          <span class="mt-1 inline-flex items-center gap-1.5 text-sm font-semibold text-brand">
+            进入模块
+            <span aria-hidden="true" class="transition-transform duration-300 group-hover:translate-x-1">→</span>
+          </span>
+        </div>
+      </a>
+
+      <a class="group relative flex flex-col gap-6 overflow-hidden rounded-2xl border border-line/80 bg-surface/80 p-6 shadow-xl shadow-black/20 transition-all duration-300 hover:-translate-y-1 hover:border-brand/40 hover:shadow-brand/10 sm:flex-row sm:items-center lg:col-span-2" href="#subscribe">
+        <div aria-hidden="true" class="pointer-events-none absolute -right-20 -top-24 h-52 w-52 rounded-full bg-indigo-600/10 blur-3xl transition-colors duration-300 group-hover:bg-indigo-600/25"></div>
+        <div class="relative w-full flex-none rounded-xl border border-line/70 bg-raised/70 p-4 sm:w-[220px]">
+          <svg viewBox="0 0 300 170" class="h-auto w-full" role="img" aria-label="订阅套餐卡片示意">
+            <g transform="rotate(-9 105 95)">
+              <rect x="48" y="40" width="114" height="100" rx="12" class="il-card-back"/>
+            </g>
+            <rect x="122" y="30" width="134" height="112" rx="12" class="il-card-front"/>
+            <rect x="122" y="30" width="134" height="24" rx="12" class="il-card-head"/>
+            <rect x="122" y="44" width="134" height="10" class="il-card-head"/>
+            <text x="138" y="92" class="il-price">¥99</text>
+            <path d="M138 108 l4 4 7-8" class="il-check"/>
+            <line x1="156" y1="108" x2="238" y2="108" class="il-line"/>
+            <path d="M138 126 l4 4 7-8" class="il-check"/>
+            <line x1="156" y1="126" x2="222" y2="126" class="il-line"/>
+          </svg>
+        </div>
+        <div class="relative flex min-w-0 flex-col gap-3">
+          <h3 class="text-lg font-semibold text-ink">订阅套餐</h3>
+          <p class="text-[13px] leading-relaxed text-muted">主流厂商订阅套餐汇总：Coding Plan / Token Plan / 会员 / Agent Plan 四大类型，月包、季包、年包价格与权益清单一屏看清。</p>
+          <div class="flex flex-wrap gap-2">
+            <span class="rounded-full border border-line/70 bg-raised/60 px-2.5 py-1 font-mono text-[10px] text-muted">Coding Plan</span>
+            <span class="rounded-full border border-line/70 bg-raised/60 px-2.5 py-1 font-mono text-[10px] text-muted">Token Plan</span>
+            <span class="rounded-full border border-line/70 bg-raised/60 px-2.5 py-1 font-mono text-[10px] text-muted">会员套餐</span>
+            <span class="rounded-full border border-line/70 bg-raised/60 px-2.5 py-1 font-mono text-[10px] text-muted">Agent Plan</span>
+          </div>
+          <span class="mt-1 inline-flex items-center gap-1.5 text-sm font-semibold text-brand">
+            进入模块
+            <span aria-hidden="true" class="transition-transform duration-300 group-hover:translate-x-1">→</span>
+          </span>
+        </div>
+      </a>
+    </section>
+
+    <footer class="mt-16 border-t border-line/60 pt-6 text-center text-xs text-faint">农夫AI · NONGFU AI —— 我们不生产AI，我们只是AI的搬运工！</footer>
   </div><!-- /view-home -->
 
+  <!-- ============================= API 价格 ============================= -->
   <div id="view-pricing" style="display:none">
-  <div class="view-toolbar">
-    <p class="note">价格单位：元 / 百万 tokens（￥/MTok）</p>
-    <div class="toggle">
-      <button id="btnBar" class="active">柱状图</button>
-      <button id="btnLine">折线图</button>
+    <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
+      <p class="note">价格单位：元 / 百万 tokens（￥/MTok）</p>
+      <div class="seg">
+        <button id="btnBar" class="seg-btn active">柱状图</button>
+        <button id="btnLine" class="seg-btn">折线图</button>
+      </div>
     </div>
-  </div>
 
-  <!-- 全局筛选：模型系列多选（默认 DS/Kimi/GLM/MiniMax）+ 图表类型多选 -->
-  <div class="filters">
-    <div class="filter-row">
-      <span class="filter-label">模型系列</span>
-      <div class="toggle" id="seriesFilter">
-        <button data-g="DeepSeek" class="active">DeepSeek</button>
-        <button data-g="Kimi" class="active">Kimi</button>
-        <button data-g="GLM" class="active">GLM</button>
-        <button data-g="MiniMax" class="active">MiniMax</button>
-        <button data-g="MiMo">MiMo</button>
-        <button data-g="Qwen">Qwen</button>
-        <button data-g="Doubao">Doubao</button>
+    <!-- 全局筛选：模型系列多选（默认 DS/Kimi/GLM/MiniMax）+ 图表类型多选 -->
+    <div class="mb-8 flex flex-col gap-3">
+      <div class="flex flex-wrap items-center gap-3">
+        <span class="w-14 shrink-0 text-[13px] text-muted">模型系列</span>
+        <div class="seg" id="seriesFilter">
+          <button data-g="DeepSeek" class="seg-btn active">DeepSeek</button>
+          <button data-g="Kimi" class="seg-btn active">Kimi</button>
+          <button data-g="GLM" class="seg-btn active">GLM</button>
+          <button data-g="MiniMax" class="seg-btn active">MiniMax</button>
+          <button data-g="MiMo" class="seg-btn">MiMo</button>
+          <button data-g="Qwen" class="seg-btn">Qwen</button>
+          <button data-g="Doubao" class="seg-btn">Doubao</button>
+        </div>
       </div>
-    </div>
-    <div class="filter-row">
-      <span class="filter-label">图表</span>
-      <div class="toggle" id="chartFilter">
-        <button data-c="hit" class="active">输入（缓存命中）</button>
-        <button data-c="miss" class="active">输入（缓存未命中）</button>
-        <button data-c="out" class="active">输出</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- 汇总模块：聚合全部系列模型，横向柱状图，随各系列开关联动 -->
-  <section class="group">
-    <div class="group-head">
-      <div class="group-title">
-        <h2>汇总对比</h2>
-      </div>
-      <div class="toggle">
-        <button id="btnSumAsc" class="active">价格升序</button>
-        <button id="btnSumDesc">价格降序</button>
-      </div>
-    </div>
-    <p class="note">包含全部模型，随各系列开关（DeepSeek 空闲/高峰、MiniMax 标准/优先、Doubao 常规/低延迟）联动；颜色区分系列</p>
-    <div class="legend">
-      <span><i style="background:var(--vendor-deepseek)"></i>DeepSeek</span>
-      <span><i style="background:var(--vendor-kimi)"></i>Kimi</span>
-      <span><i style="background:var(--vendor-glm)"></i>GLM</span>
-      <span><i style="background:var(--vendor-minimax)"></i>MiniMax</span>
-      <span><i style="background:var(--vendor-mimo)"></i>MiMo</span>
-      <span><i style="background:var(--vendor-qwen)"></i>Qwen</span>
-      <span><i style="background:var(--vendor-doubao)"></i>Doubao</span>
-    </div>
-    <div class="grid">
-      <div class="card">
-        <h3>输入（缓存命中）</h3>
-        <div class="chart-wrap"><div id="sumHit" class="chart sum-w"></div></div>
-      </div>
-      <div class="card">
-        <h3>输入（缓存未命中）</h3>
-        <div class="chart-wrap"><div id="sumMiss" class="chart sum-w"></div></div>
-      </div>
-      <div class="card">
-        <h3>输出</h3>
-        <div class="chart-wrap"><div id="sumOut" class="chart sum-w"></div></div>
-      </div>
-    </div>
-  </section>
-
-  <section class="group" data-group="DeepSeek">
-    <div class="group-head">
-      <div class="group-title">
-        <h2>DeepSeek 系列</h2>
-        <a href="https://api-docs.deepseek.com/zh-cn/quick_start/pricing/" target="_blank" rel="noopener">官方来源</a>
-      </div>
-      <div class="toggle">
-        <button id="btnOff">空闲时段</button>
-        <button id="btnPeak" class="active">高峰时段</button>
-      </div>
-    </div>
-    <p class="note">高峰时段：北京时间周一至周五 9:00–12:00、14:00–18:00，其余为空闲时段（空闲价为高峰价的一半）</p>
-    <div class="grid">
-      <div class="card">
-        <h3>输入（缓存命中）</h3>
-        <div class="chart-wrap"><div id="chartHit" class="chart"></div></div>
-      </div>
-      <div class="card">
-        <h3>输入（缓存未命中）</h3>
-        <div class="chart-wrap"><div id="chartMiss" class="chart"></div></div>
-      </div>
-      <div class="card">
-        <h3>输出</h3>
-        <div class="chart-wrap"><div id="chartOut" class="chart"></div></div>
-      </div>
-    </div>
-  </section>
-
-  <section class="group" data-group="Kimi">
-    <div class="group-head">
-      <div class="group-title">
-        <h2>Kimi 系列</h2>
-        <a href="https://platform.kimi.com/docs/pricing/chat" target="_blank" rel="noopener">官方来源</a>
-      </div>
-    </div>
-    <div class="grid">
-      <div class="card">
-        <h3>输入（缓存命中）</h3>
-        <div class="chart-wrap"><div id="kimiHit" class="chart"></div></div>
-      </div>
-      <div class="card">
-        <h3>输入（缓存未命中）</h3>
-        <div class="chart-wrap"><div id="kimiMiss" class="chart"></div></div>
-      </div>
-      <div class="card">
-        <h3>输出</h3>
-        <div class="chart-wrap"><div id="kimiOut" class="chart"></div></div>
-      </div>
-    </div>
-  </section>
-
-  <section class="group" data-group="GLM">
-    <div class="group-head">
-      <div class="group-title">
-        <h2>GLM 系列</h2>
-        <a href="https://bigmodel.cn/pricing" target="_blank" rel="noopener">官方来源</a>
-      </div>
-    </div>
-    <p class="note">GLM-5.3-Flash 所示为限时 5 折价（原价 0.23 / 0.8 / 2.8 元）</p>
-    <div class="grid">
-      <div class="card">
-        <h3>输入（缓存命中）</h3>
-        <div class="chart-wrap"><div id="glmHit" class="chart"></div></div>
-      </div>
-      <div class="card">
-        <h3>输入（缓存未命中）</h3>
-        <div class="chart-wrap"><div id="glmMiss" class="chart"></div></div>
-      </div>
-      <div class="card">
-        <h3>输出</h3>
-        <div class="chart-wrap"><div id="glmOut" class="chart"></div></div>
-      </div>
-    </div>
-  </section>
-
-  <section class="group" data-group="MiniMax">
-    <div class="group-head">
-      <div class="group-title">
-        <h2>MiniMax 系列</h2>
-        <a href="https://platform.minimax.cn/subscribe/token-plan?tab=api-enterprise" target="_blank" rel="noopener">官方来源</a>
-      </div>
-      <div class="toggle">
-        <button id="btnMmStd" class="active">标准</button>
-        <button id="btnMmPri">优先</button>
-      </div>
-    </div>
-    <p class="note">优先层级按标准价的 1.5 倍计费，M2.7 系列无层级差异；MiniMax-M3 按输入长度分 ≤512k / &gt;512k 两档；<span class="warn">M2.7 系列缓存写入 2.625 元 / 百万 tokens</span></p>
-    <div class="grid">
-      <div class="card">
-        <h3>输入（缓存命中）</h3>
-        <div class="chart-wrap"><div id="mmHit" class="chart"></div></div>
-      </div>
-      <div class="card">
-        <h3>输入（缓存未命中）</h3>
-        <div class="chart-wrap"><div id="mmMiss" class="chart"></div></div>
-      </div>
-      <div class="card">
-        <h3>输出</h3>
-        <div class="chart-wrap"><div id="mmOut" class="chart"></div></div>
-      </div>
-    </div>
-  </section>
-
-  <section class="group" data-group="MiMo">
-    <div class="group-head">
-      <div class="group-title">
-        <h2>MiMo 系列</h2>
-        <a href="https://mimo.mi.com/docs/zh-CN/price/pay-as-you-go" target="_blank" rel="noopener">官方来源</a>
-      </div>
-    </div>
-    <div class="grid">
-      <div class="card">
-        <h3>输入（缓存命中）</h3>
-        <div class="chart-wrap"><div id="mimoHit" class="chart"></div></div>
-      </div>
-      <div class="card">
-        <h3>输入（缓存未命中）</h3>
-        <div class="chart-wrap"><div id="mimoMiss" class="chart"></div></div>
-      </div>
-      <div class="card">
-        <h3>输出</h3>
-        <div class="chart-wrap"><div id="mimoOut" class="chart"></div></div>
-      </div>
-    </div>
-  </section>
-
-  <section class="group" data-group="Qwen">
-    <div class="group-head">
-      <div class="group-title">
-        <h2>Qwen 系列</h2>
-        <a href="https://platform.qianwenai.com/pricing/api" target="_blank" rel="noopener">官方来源</a>
-      </div>
-    </div>
-    <p class="note">qwen3.7-plus 所示为限时 8 折价；qwen3.7-plus / qwen3.7-flash 按输入长度分档计费</p>
-    <div class="grid stack">
-      <div class="card">
-        <h3>输入（缓存命中）</h3>
-        <div class="chart-wrap"><div id="qwenHit" class="chart qwen-w"></div></div>
-      </div>
-      <div class="card">
-        <h3>输入（缓存未命中）</h3>
-        <div class="chart-wrap"><div id="qwenMiss" class="chart qwen-w"></div></div>
-      </div>
-      <div class="card">
-        <h3>输出</h3>
-        <div class="chart-wrap"><div id="qwenOut" class="chart qwen-w"></div></div>
-      </div>
-    </div>
-  </section>
-
-  <section class="group" data-group="Doubao">
-    <div class="group-head">
-      <div class="group-title">
-        <h2>Doubao 系列</h2>
-        <a href="https://docs.volcengine.com/docs/82379/1544106?lang=zh" target="_blank" rel="noopener">官方来源</a>
-      </div>
-      <div class="toggle">
-        <button id="btnDbReg" class="active">常规</button>
-        <button id="btnDbLow">低延迟</button>
-      </div>
-    </div>
-    <p class="note">低延迟模式不提供 doubao-seed-evolving / 2.1-pro / 2.0-code（图中留空）；<span class="warn">缓存存储 0.017 元 / 百万 tokens / 小时</span></p>
-    <div class="grid stack">
-      <div class="card">
-        <h3>输入（缓存命中）</h3>
-        <div class="chart-wrap"><div id="dbHit" class="chart db-w"></div></div>
-      </div>
-      <div class="card">
-        <h3>输入（缓存未命中）</h3>
-        <div class="chart-wrap"><div id="dbMiss" class="chart db-w"></div></div>
-      </div>
-      <div class="card">
-        <h3>输出</h3>
-        <div class="chart-wrap"><div id="dbOut" class="chart db-w"></div></div>
-      </div>
-    </div>
-  </section>
-  </div><!-- /view-pricing -->
-
-  <!-- 订阅套餐模块：与模型定价并列，覆盖 Coding / Token / 会员 / Agent Plan -->
-  <div id="view-subscribe" style="display:none">
-    <p class="note">订阅套餐（Coding Plan / Token Plan / 会员 / Agent Plan）数据为<strong class="warn">静态采集快照</strong>，价格与额度随厂商频繁调整，请以各官方页面为准</p>
-    <div class="filters">
-      <div class="filter-row">
-        <span class="filter-label">类型</span>
-        <div class="toggle" id="subCatFilter">
-          <button data-c="all" class="active">全部</button>
-          <button data-c="coding">Coding Plan</button>
-          <button data-c="token">Token Plan</button>
-          <button data-c="member">会员套餐</button>
-          <button data-c="agent">Agent Plan</button>
+      <div class="flex flex-wrap items-center gap-3">
+        <span class="w-14 shrink-0 text-[13px] text-muted">图表</span>
+        <div class="seg" id="chartFilter">
+          <button data-c="hit" class="seg-btn active">输入（缓存命中）</button>
+          <button data-c="miss" class="seg-btn active">输入（缓存未命中）</button>
+          <button data-c="out" class="seg-btn active">输出</button>
         </div>
       </div>
     </div>
+
+    <!-- 汇总模块：聚合全部系列模型，横向柱状图，随各系列开关联动 -->
+    <section class="group mt-10">
+      <div class="mb-2 flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-baseline gap-2.5">
+          <h2 class="text-lg font-semibold text-ink">汇总对比</h2>
+        </div>
+        <div class="seg">
+          <button id="btnSumAsc" class="seg-btn active">价格升序</button>
+          <button id="btnSumDesc" class="seg-btn">价格降序</button>
+        </div>
+      </div>
+      <p class="note">包含全部模型，随各系列开关（DeepSeek 空闲/高峰、MiniMax 标准/优先、Doubao 常规/低延迟）联动；颜色区分系列</p>
+      <div class="mb-4 mt-3 flex flex-wrap gap-4 text-xs text-muted">
+        <span class="inline-flex items-center gap-1.5"><i class="inline-block h-2.5 w-2.5 rounded-[3px]" style="background:var(--vendor-deepseek)"></i>DeepSeek</span>
+        <span class="inline-flex items-center gap-1.5"><i class="inline-block h-2.5 w-2.5 rounded-[3px]" style="background:var(--vendor-kimi)"></i>Kimi</span>
+        <span class="inline-flex items-center gap-1.5"><i class="inline-block h-2.5 w-2.5 rounded-[3px]" style="background:var(--vendor-glm)"></i>GLM</span>
+        <span class="inline-flex items-center gap-1.5"><i class="inline-block h-2.5 w-2.5 rounded-[3px]" style="background:var(--vendor-minimax)"></i>MiniMax</span>
+        <span class="inline-flex items-center gap-1.5"><i class="inline-block h-2.5 w-2.5 rounded-[3px]" style="background:var(--vendor-mimo)"></i>MiMo</span>
+        <span class="inline-flex items-center gap-1.5"><i class="inline-block h-2.5 w-2.5 rounded-[3px]" style="background:var(--vendor-qwen)"></i>Qwen</span>
+        <span class="inline-flex items-center gap-1.5"><i class="inline-block h-2.5 w-2.5 rounded-[3px]" style="background:var(--vendor-doubao)"></i>Doubao</span>
+      </div>
+      <div class="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
+        <div class="card min-w-0 rounded-2xl border border-line/80 bg-surface/80 p-4 shadow-lg shadow-black/10 transition-colors duration-200 hover:border-linehi">
+          <h3 class="mb-3 text-[15px] font-semibold text-ink">输入（缓存命中）</h3>
+          <div class="chart-wrap"><div id="sumHit" class="chart sum-w"></div></div>
+        </div>
+        <div class="card min-w-0 rounded-2xl border border-line/80 bg-surface/80 p-4 shadow-lg shadow-black/10 transition-colors duration-200 hover:border-linehi">
+          <h3 class="mb-3 text-[15px] font-semibold text-ink">输入（缓存未命中）</h3>
+          <div class="chart-wrap"><div id="sumMiss" class="chart sum-w"></div></div>
+        </div>
+        <div class="card min-w-0 rounded-2xl border border-line/80 bg-surface/80 p-4 shadow-lg shadow-black/10 transition-colors duration-200 hover:border-linehi">
+          <h3 class="mb-3 text-[15px] font-semibold text-ink">输出</h3>
+          <div class="chart-wrap"><div id="sumOut" class="chart sum-w"></div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="group mt-12" data-group="DeepSeek">
+      <div class="mb-2 flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-baseline gap-2.5">
+          <h2 class="text-lg font-semibold text-ink">DeepSeek 系列</h2>
+          <a href="https://api-docs.deepseek.com/zh-cn/quick_start/pricing/" target="_blank" rel="noopener" class="text-[11px] font-medium text-indigo-400 transition-colors hover:text-indigo-300 hover:underline">官方来源</a>
+        </div>
+        <div class="seg">
+          <button id="btnOff" class="seg-btn">空闲时段</button>
+          <button id="btnPeak" class="seg-btn active">高峰时段</button>
+        </div>
+      </div>
+      <p class="note">高峰时段：北京时间周一至周五 9:00–12:00、14:00–18:00，其余为空闲时段（空闲价为高峰价的一半）</p>
+      <div class="mt-3 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
+        <div class="card min-w-0 rounded-2xl border border-line/80 bg-surface/80 p-4 shadow-lg shadow-black/10 transition-colors duration-200 hover:border-linehi">
+          <h3 class="mb-3 text-[15px] font-semibold text-ink">输入（缓存命中）</h3>
+          <div class="chart-wrap"><div id="chartHit" class="chart"></div></div>
+        </div>
+        <div class="card min-w-0 rounded-2xl border border-line/80 bg-surface/80 p-4 shadow-lg shadow-black/10 transition-colors duration-200 hover:border-linehi">
+          <h3 class="mb-3 text-[15px] font-semibold text-ink">输入（缓存未命中）</h3>
+          <div class="chart-wrap"><div id="chartMiss" class="chart"></div></div>
+        </div>
+        <div class="card min-w-0 rounded-2xl border border-line/80 bg-surface/80 p-4 shadow-lg shadow-black/10 transition-colors duration-200 hover:border-linehi">
+          <h3 class="mb-3 text-[15px] font-semibold text-ink">输出</h3>
+          <div class="chart-wrap"><div id="chartOut" class="chart"></div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="group mt-12" data-group="Kimi">
+      <div class="mb-2 flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-baseline gap-2.5">
+          <h2 class="text-lg font-semibold text-ink">Kimi 系列</h2>
+          <a href="https://platform.kimi.com/docs/pricing/chat" target="_blank" rel="noopener" class="text-[11px] font-medium text-indigo-400 transition-colors hover:text-indigo-300 hover:underline">官方来源</a>
+        </div>
+      </div>
+      <div class="mt-3 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
+        <div class="card min-w-0 rounded-2xl border border-line/80 bg-surface/80 p-4 shadow-lg shadow-black/10 transition-colors duration-200 hover:border-linehi">
+          <h3 class="mb-3 text-[15px] font-semibold text-ink">输入（缓存命中）</h3>
+          <div class="chart-wrap"><div id="kimiHit" class="chart"></div></div>
+        </div>
+        <div class="card min-w-0 rounded-2xl border border-line/80 bg-surface/80 p-4 shadow-lg shadow-black/10 transition-colors duration-200 hover:border-linehi">
+          <h3 class="mb-3 text-[15px] font-semibold text-ink">输入（缓存未命中）</h3>
+          <div class="chart-wrap"><div id="kimiMiss" class="chart"></div></div>
+        </div>
+        <div class="card min-w-0 rounded-2xl border border-line/80 bg-surface/80 p-4 shadow-lg shadow-black/10 transition-colors duration-200 hover:border-linehi">
+          <h3 class="mb-3 text-[15px] font-semibold text-ink">输出</h3>
+          <div class="chart-wrap"><div id="kimiOut" class="chart"></div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="group mt-12" data-group="GLM">
+      <div class="mb-2 flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-baseline gap-2.5">
+          <h2 class="text-lg font-semibold text-ink">GLM 系列</h2>
+          <a href="https://bigmodel.cn/pricing" target="_blank" rel="noopener" class="text-[11px] font-medium text-indigo-400 transition-colors hover:text-indigo-300 hover:underline">官方来源</a>
+        </div>
+      </div>
+      <p class="note">GLM-5.3-Flash 所示为限时 5 折价（原价 0.23 / 0.8 / 2.8 元）</p>
+      <div class="mt-3 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
+        <div class="card min-w-0 rounded-2xl border border-line/80 bg-surface/80 p-4 shadow-lg shadow-black/10 transition-colors duration-200 hover:border-linehi">
+          <h3 class="mb-3 text-[15px] font-semibold text-ink">输入（缓存命中）</h3>
+          <div class="chart-wrap"><div id="glmHit" class="chart"></div></div>
+        </div>
+        <div class="card min-w-0 rounded-2xl border border-line/80 bg-surface/80 p-4 shadow-lg shadow-black/10 transition-colors duration-200 hover:border-linehi">
+          <h3 class="mb-3 text-[15px] font-semibold text-ink">输入（缓存未命中）</h3>
+          <div class="chart-wrap"><div id="glmMiss" class="chart"></div></div>
+        </div>
+        <div class="card min-w-0 rounded-2xl border border-line/80 bg-surface/80 p-4 shadow-lg shadow-black/10 transition-colors duration-200 hover:border-linehi">
+          <h3 class="mb-3 text-[15px] font-semibold text-ink">输出</h3>
+          <div class="chart-wrap"><div id="glmOut" class="chart"></div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="group mt-12" data-group="MiniMax">
+      <div class="mb-2 flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-baseline gap-2.5">
+          <h2 class="text-lg font-semibold text-ink">MiniMax 系列</h2>
+          <a href="https://platform.minimax.cn/subscribe/token-plan?tab=api-enterprise" target="_blank" rel="noopener" class="text-[11px] font-medium text-indigo-400 transition-colors hover:text-indigo-300 hover:underline">官方来源</a>
+        </div>
+        <div class="seg">
+          <button id="btnMmStd" class="seg-btn active">标准</button>
+          <button id="btnMmPri" class="seg-btn">优先</button>
+        </div>
+      </div>
+      <p class="note">优先层级按标准价的 1.5 倍计费，M2.7 系列无层级差异；MiniMax-M3 按输入长度分 ≤512k / &gt;512k 两档；<span class="warn">M2.7 系列缓存写入 2.625 元 / 百万 tokens</span></p>
+      <div class="mt-3 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
+        <div class="card min-w-0 rounded-2xl border border-line/80 bg-surface/80 p-4 shadow-lg shadow-black/10 transition-colors duration-200 hover:border-linehi">
+          <h3 class="mb-3 text-[15px] font-semibold text-ink">输入（缓存命中）</h3>
+          <div class="chart-wrap"><div id="mmHit" class="chart"></div></div>
+        </div>
+        <div class="card min-w-0 rounded-2xl border border-line/80 bg-surface/80 p-4 shadow-lg shadow-black/10 transition-colors duration-200 hover:border-linehi">
+          <h3 class="mb-3 text-[15px] font-semibold text-ink">输入（缓存未命中）</h3>
+          <div class="chart-wrap"><div id="mmMiss" class="chart"></div></div>
+        </div>
+        <div class="card min-w-0 rounded-2xl border border-line/80 bg-surface/80 p-4 shadow-lg shadow-black/10 transition-colors duration-200 hover:border-linehi">
+          <h3 class="mb-3 text-[15px] font-semibold text-ink">输出</h3>
+          <div class="chart-wrap"><div id="mmOut" class="chart"></div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="group mt-12" data-group="MiMo">
+      <div class="mb-2 flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-baseline gap-2.5">
+          <h2 class="text-lg font-semibold text-ink">MiMo 系列</h2>
+          <a href="https://mimo.mi.com/docs/zh-CN/price/pay-as-you-go" target="_blank" rel="noopener" class="text-[11px] font-medium text-indigo-400 transition-colors hover:text-indigo-300 hover:underline">官方来源</a>
+        </div>
+      </div>
+      <div class="mt-3 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
+        <div class="card min-w-0 rounded-2xl border border-line/80 bg-surface/80 p-4 shadow-lg shadow-black/10 transition-colors duration-200 hover:border-linehi">
+          <h3 class="mb-3 text-[15px] font-semibold text-ink">输入（缓存命中）</h3>
+          <div class="chart-wrap"><div id="mimoHit" class="chart"></div></div>
+        </div>
+        <div class="card min-w-0 rounded-2xl border border-line/80 bg-surface/80 p-4 shadow-lg shadow-black/10 transition-colors duration-200 hover:border-linehi">
+          <h3 class="mb-3 text-[15px] font-semibold text-ink">输入（缓存未命中）</h3>
+          <div class="chart-wrap"><div id="mimoMiss" class="chart"></div></div>
+        </div>
+        <div class="card min-w-0 rounded-2xl border border-line/80 bg-surface/80 p-4 shadow-lg shadow-black/10 transition-colors duration-200 hover:border-linehi">
+          <h3 class="mb-3 text-[15px] font-semibold text-ink">输出</h3>
+          <div class="chart-wrap"><div id="mimoOut" class="chart"></div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="group mt-12" data-group="Qwen">
+      <div class="mb-2 flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-baseline gap-2.5">
+          <h2 class="text-lg font-semibold text-ink">Qwen 系列</h2>
+          <a href="https://platform.qianwenai.com/pricing/api" target="_blank" rel="noopener" class="text-[11px] font-medium text-indigo-400 transition-colors hover:text-indigo-300 hover:underline">官方来源</a>
+        </div>
+      </div>
+      <p class="note">qwen3.7-plus 所示为限时 8 折价；qwen3.7-plus / qwen3.7-flash 按输入长度分档计费</p>
+      <div class="mt-3 grid grid-cols-1 gap-5">
+        <div class="card min-w-0 rounded-2xl border border-line/80 bg-surface/80 p-4 shadow-lg shadow-black/10 transition-colors duration-200 hover:border-linehi">
+          <h3 class="mb-3 text-[15px] font-semibold text-ink">输入（缓存命中）</h3>
+          <div class="chart-wrap"><div id="qwenHit" class="chart qwen-w"></div></div>
+        </div>
+        <div class="card min-w-0 rounded-2xl border border-line/80 bg-surface/80 p-4 shadow-lg shadow-black/10 transition-colors duration-200 hover:border-linehi">
+          <h3 class="mb-3 text-[15px] font-semibold text-ink">输入（缓存未命中）</h3>
+          <div class="chart-wrap"><div id="qwenMiss" class="chart qwen-w"></div></div>
+        </div>
+        <div class="card min-w-0 rounded-2xl border border-line/80 bg-surface/80 p-4 shadow-lg shadow-black/10 transition-colors duration-200 hover:border-linehi">
+          <h3 class="mb-3 text-[15px] font-semibold text-ink">输出</h3>
+          <div class="chart-wrap"><div id="qwenOut" class="chart qwen-w"></div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="group mt-12" data-group="Doubao">
+      <div class="mb-2 flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-baseline gap-2.5">
+          <h2 class="text-lg font-semibold text-ink">Doubao 系列</h2>
+          <a href="https://docs.volcengine.com/docs/82379/1544106?lang=zh" target="_blank" rel="noopener" class="text-[11px] font-medium text-indigo-400 transition-colors hover:text-indigo-300 hover:underline">官方来源</a>
+        </div>
+        <div class="seg">
+          <button id="btnDbReg" class="seg-btn active">常规</button>
+          <button id="btnDbLow" class="seg-btn">低延迟</button>
+        </div>
+      </div>
+      <p class="note">低延迟模式不提供 doubao-seed-evolving / 2.1-pro / 2.0-code（图中留空）；<span class="warn">缓存存储 0.017 元 / 百万 tokens / 小时</span></p>
+      <div class="mt-3 grid grid-cols-1 gap-5">
+        <div class="card min-w-0 rounded-2xl border border-line/80 bg-surface/80 p-4 shadow-lg shadow-black/10 transition-colors duration-200 hover:border-linehi">
+          <h3 class="mb-3 text-[15px] font-semibold text-ink">输入（缓存命中）</h3>
+          <div class="chart-wrap"><div id="dbHit" class="chart db-w"></div></div>
+        </div>
+        <div class="card min-w-0 rounded-2xl border border-line/80 bg-surface/80 p-4 shadow-lg shadow-black/10 transition-colors duration-200 hover:border-linehi">
+          <h3 class="mb-3 text-[15px] font-semibold text-ink">输入（缓存未命中）</h3>
+          <div class="chart-wrap"><div id="dbMiss" class="chart db-w"></div></div>
+        </div>
+        <div class="card min-w-0 rounded-2xl border border-line/80 bg-surface/80 p-4 shadow-lg shadow-black/10 transition-colors duration-200 hover:border-linehi">
+          <h3 class="mb-3 text-[15px] font-semibold text-ink">输出</h3>
+          <div class="chart-wrap"><div id="dbOut" class="chart db-w"></div></div>
+        </div>
+      </div>
+    </section>
+  </div><!-- /view-pricing -->
+
+  <!-- ============================= 订阅套餐 ============================= -->
+  <div id="view-subscribe" style="display:none">
+    <p class="note mb-6">订阅套餐（Coding Plan / Token Plan / 会员 / Agent Plan）数据为<strong class="warn">静态采集快照</strong>，价格与额度随厂商频繁调整，请以各官方页面为准</p>
+    <div class="mb-6 flex flex-wrap items-center gap-3">
+      <span class="w-14 shrink-0 text-[13px] text-muted">类型</span>
+      <div class="seg" id="subCatFilter">
+        <button data-c="all" class="seg-btn active">全部</button>
+        <button data-c="coding" class="seg-btn">Coding Plan</button>
+        <button data-c="token" class="seg-btn">Token Plan</button>
+        <button data-c="member" class="seg-btn">会员套餐</button>
+        <button data-c="agent" class="seg-btn">Agent Plan</button>
+      </div>
+    </div>
     <div id="subSections"></div>
-  </div>
-</div>
+  </div><!-- /view-subscribe -->
+
+</main>
 
 <script>
 // DeepSeek 只展示模型版本名
@@ -793,19 +752,48 @@ const cssVar = (name, fallback) => {
   const v = getComputedStyle(document.body).getPropertyValue(name).trim();
   return v || fallback;
 };
+// 图表统一字体（Inter 为主，中文回退 PingFang / 微软雅黑）
+const CHART_FONT = "'Inter', 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif";
 const pal = () => ({
-  text:   cssVar('--chart-value', '#E9F1EB'),    // 数值标签
-  sub:    cssVar('--chart-axis', '#5F7166'),     // 坐标轴标签
-  name:   cssVar('--faint', '#5F7166'),          // 轴名
-  split:  cssVar('--chart-grid', '#232E29'),     // 网格线
-  accent: cssVar('--chart-series', '#3ECF8E'),   // 单厂商 / 单系列主色：品牌绿
+  text:   cssVar('--chart-value', '#FAFAFA'),    // 数值标签
+  sub:    cssVar('--chart-axis', '#A1A1AA'),     // 坐标轴标签
+  name:   cssVar('--faint', '#71717A'),          // 轴名
+  split:  cssVar('--chart-grid', '#27272A'),     // 网格线
+  accent: cssVar('--chart-series', '#A855F7'),   // 单厂商 / 单系列主色：品牌紫
+  font:   CHART_FONT,
   tip: {
-    backgroundColor: cssVar('--card', '#151D19'),
-    borderColor: cssVar('--border', '#232E29'),
+    backgroundColor: cssVar('--card', '#18181B'),
+    borderColor: cssVar('--border', '#27272A'),
     borderWidth: 1,
-    textStyle: { color: cssVar('--text', '#E9F1EB'), fontSize: 12 }
+    padding: [10, 12],
+    extraCssText: 'border-radius:12px;box-shadow:0 18px 40px -18px rgba(0,0,0,.7);',
+    textStyle: { color: cssVar('--text', '#FAFAFA'), fontSize: 12, fontFamily: CHART_FONT }
   }
 });
+// 色值 → rgba：用于柱/折线的顶部渐变色（支持 #RGB / #RRGGBB / rgb() / rgba()）
+const toRgba = (color, alpha) => {
+  const c = String(color || '').trim();
+  const hex = c.replace('#', '');
+  if (/^([0-9a-f]{3}|[0-9a-f]{6})$/i.test(hex)) {
+    const h = hex.length === 3 ? hex.split('').map(x => x + x).join('') : hex;
+    const n = parseInt(h, 16);
+    return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`;
+  }
+  const m = c.match(/rgba?\(([^)]+)\)/i);
+  if (m) {
+    const p = m[1].split(',').map(s => s.trim());
+    return `rgba(${p[0]}, ${p[1]}, ${p[2]}, ${alpha})`;
+  }
+  return c;
+};
+const vGradient = (color, topAlpha, bottomAlpha) => new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+  { offset: 0, color: toRgba(color, topAlpha) },
+  { offset: 1, color: toRgba(color, bottomAlpha) }
+]);
+const hGradient = (color, leftAlpha, rightAlpha) => new echarts.graphic.LinearGradient(0, 0, 1, 0, [
+  { offset: 0, color: toRgba(color, leftAlpha) },
+  { offset: 1, color: toRgba(color, rightAlpha) }
+]);
 const factor = () => (period === 'off' ? 0.5 : 1);
 const fmt = v => {
   const s = parseFloat(v.toFixed(4)).toString();
@@ -817,13 +805,17 @@ const seriesByType = values => {
   const common = {
     data: values,
     // 留空档位（null）不显示数值标签；数值标签 11px / 600
-    label: { show: true, position: 'top', fontSize: 11, fontWeight: 600, color: c.text, formatter: p => (p.value == null ? '' : fmt(p.value)) }
+    label: { show: true, position: 'top', fontSize: 11, fontWeight: 600, color: c.text, fontFamily: c.font, formatter: p => (p.value == null ? '' : fmt(p.value)) }
   };
   return chartType === 'line'
-    ? { ...common, type: 'line', symbol: 'circle', symbolSize: 9,
-        lineStyle: { width: 3, color: c.accent }, itemStyle: { color: c.accent } }
+    ? { ...common, type: 'line', smooth: 0.32, symbol: 'circle', symbolSize: 7,
+        lineStyle: { width: 2.5, color: c.accent, shadowBlur: 16, shadowColor: toRgba(c.accent, .45), shadowOffsetY: 6 },
+        itemStyle: { color: c.accent, borderColor: cssVar('--card', '#18181B'), borderWidth: 1.5 },
+        // 折线面积：顶部渐隐，弱化底部
+        areaStyle: { color: vGradient(c.accent, .28, 0) } }
     : { ...common, type: 'bar', barWidth: 40,
-        itemStyle: { borderRadius: [4, 4, 0, 0], color: c.accent } };
+        // 柱状：顶部高饱和 → 底部半透明渐变
+        itemStyle: { borderRadius: [6, 6, 0, 0], color: vGradient(c.accent, .95, .12) } };
 };
 
 const baseOption = (values, models, labelFormatter, gridBottom) => {
@@ -831,23 +823,24 @@ const baseOption = (values, models, labelFormatter, gridBottom) => {
   return {
   // containLabel:false + 固定 left/bottom：Y 轴刻度位数变化时绘图区不偏移
   grid: { left: 48, right: 16, top: 44, bottom: gridBottom, containLabel: false },
-  tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, ...c.tip,
+  textStyle: { fontFamily: c.font },
+  tooltip: { trigger: 'axis', axisPointer: { type: 'shadow', shadowStyle: { color: toRgba(c.accent, .07) } }, ...c.tip,
     formatter: ps => ps[0].value == null ? '' : `${ps[0].name}<br/>${ps[0].marker} ￥${parseFloat(ps[0].value.toFixed(4))} / MTok` },
   xAxis: {
     type: 'category', data: models,
     boundaryGap: true,
-    axisLine: { lineStyle: { color: c.split } },
-    axisTick: { lineStyle: { color: c.split } },
-    axisLabel: { interval: 0, fontSize: 11, lineHeight: 14, color: c.sub, formatter: labelFormatter }
+    axisLine: { lineStyle: { color: c.split, width: 1 } },
+    axisTick: { show: false },
+    axisLabel: { interval: 0, fontSize: 11, lineHeight: 14, color: c.sub, fontFamily: c.font, formatter: labelFormatter }
   },
   yAxis: {
     type: 'value', name: '￥/MTok', nameGap: 16,
-    nameTextStyle: { color: c.name, fontSize: 12, align: 'left', padding: [0, 0, 0, -8] },
-    axisLabel: { formatter: '{value}', color: c.sub, fontSize: 11 },
-    axisLine: { lineStyle: { color: c.split } },
-    axisTick: { lineStyle: { color: c.split } },
-    // 网格线：虚线 3 5，透明度 0.6
-    splitLine: { lineStyle: { type: [3, 5], color: c.split, opacity: 0.6 } }
+    nameTextStyle: { color: c.name, fontSize: 11, fontFamily: c.font, align: 'left', padding: [0, 0, 0, -8] },
+    axisLabel: { formatter: '{value}', color: c.sub, fontSize: 11, fontFamily: c.font },
+    axisLine: { show: false },
+    axisTick: { show: false },
+    // 网格线：虚线 3 5，纤细弱化
+    splitLine: { lineStyle: { type: [3, 5], color: c.split, opacity: 0.5, width: 1 } }
   },
   series: [seriesByType(values)]
   };
@@ -905,7 +898,7 @@ const VENDOR_VAR = {
   'Doubao': '--vendor-doubao'
 };
 // 色值来自 CSS 变量；未登记系列回退备用色 --vendor-alt
-const groupColor = group => cssVar(VENDOR_VAR[group] || '--vendor-alt', '#9AA7B8');
+const groupColor = group => cssVar(VENDOR_VAR[group] || '--vendor-alt', '#94A3B8');
 const sumCharts = {
   hit:  echarts.init(document.getElementById('sumHit')),
   miss: echarts.init(document.getElementById('sumMiss')),
@@ -937,20 +930,22 @@ function summaryOption(entries) {
   const c = pal();
   return {
     grid: { left: 8, right: 56, top: 10, bottom: 10, containLabel: true },
+    textStyle: { fontFamily: c.font },
     tooltip: { trigger: 'item', ...c.tip,
       formatter: p => `${p.name}<br/>${p.marker} ￥${parseFloat(p.value.toFixed(4))} / MTok` },
     xAxis: { type: 'value',
-      axisLabel: { color: c.sub, fontSize: 11 },
-      axisLine: { lineStyle: { color: c.split } },
-      axisTick: { lineStyle: { color: c.split } },
-      splitLine: { lineStyle: { type: [3, 5], color: c.split, opacity: 0.6 } } },
+      axisLabel: { color: c.sub, fontSize: 11, fontFamily: c.font },
+      axisLine: { show: false },
+      axisTick: { show: false },
+      splitLine: { lineStyle: { type: [3, 5], color: c.split, opacity: 0.5, width: 1 } } },
     yAxis: { type: 'category', data: entries.map(e => e.name), inverse: true,
-      axisLabel: { color: c.sub, fontSize: 11, width: 176, overflow: 'truncate' },
+      axisLabel: { color: c.sub, fontSize: 11, fontFamily: c.font, width: 176, overflow: 'truncate' },
       axisTick: { show: false }, axisLine: { show: false } },
     series: [{
-      type: 'bar', barWidth: 13,
-      data: entries.map(e => ({ value: e.value, itemStyle: { color: groupColor(e.group), borderRadius: [0, 4, 4, 0] } })),
-      label: { show: true, position: 'right', distance: 4, fontSize: 11, fontWeight: 600, color: c.text, formatter: p => fmt(p.value) }
+      type: 'bar', barWidth: 12,
+      // 横向柱：左侧半透明 → 右侧实色，随系列配色
+      data: entries.map(e => ({ value: e.value, itemStyle: { color: hGradient(groupColor(e.group), .45, 1), borderRadius: [0, 6, 6, 0] } })),
+      label: { show: true, position: 'right', distance: 4, fontSize: 11, fontWeight: 600, color: c.text, fontFamily: c.font, formatter: p => fmt(p.value) }
     }]
   };
 }
@@ -1073,6 +1068,9 @@ function resizeAll() {
    ...Object.values(dbCharts), ...Object.values(sumCharts)].forEach(c => c.resize());
 }
 window.addEventListener('resize', resizeAll);
+// 字体加载 / 页面完全就绪后再校准一次尺寸（首帧布局与 Tailwind 样式注入可能有先后）
+window.addEventListener('load', () => requestAnimationFrame(resizeAll));
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => requestAnimationFrame(resizeAll));
 
 // 全局筛选：卡片按图表类型归类（id 后缀 Hit/Miss/Out），系列区块按 data-group
 const chartTypeOf = { Hit: 'hit', Miss: 'miss', Out: 'out' };
@@ -1441,6 +1439,10 @@ const SUBS = [
   }
 ];
 
+// 勾选 / 星标图标统一为 SVG（颜色由 .sub-checks li 的状态类驱动）
+const ICON_CHECK = '<svg class="mk h-3.5 w-3.5 flex-none" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4.6 10.6l3.4 3.4L15.6 6.2" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const ICON_STAR = '<svg class="mk h-3.5 w-3.5 flex-none" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M10 1.8l2.5 5.1 5.6.8-4.05 3.95 1 5.55L10 14.55 4.95 17.2l1-5.55L1.9 7.7l5.6-.8z"/></svg>';
+
 function renderSubs() {
   const root = document.getElementById('subSections');
   root.innerHTML = SUBS.map(p => {
@@ -1456,36 +1458,46 @@ function renderSubs() {
       const showBadge = badge && !/(立省|立减|首月|限时|包季|受邀|特惠|优惠|再享|折)/.test(badge) ? badge : '';
       const headline = pl.headline ? (typeof pl.headline === 'object' ? (pl.headline[period] || '') : pl.headline) : '';
       const hsub = pl.headlineSub ? (typeof pl.headlineSub === 'object' ? (pl.headlineSub[period] || '') : pl.headlineSub) : '';
+      // 推荐套餐：数据标记 featured，或徽标为「最受欢迎 / Hot / 推荐」
+      const isFeatured = !!(pl.featured || /最受欢迎|Hot|推荐/.test(showBadge));
+      const tagText = showBadge || (pl.featured ? '推荐' : '');
+      const badgeHtml = tagText
+        ? `<span class="sub-badge${isFeatured ? ' sub-badge-top' : ''}">${tagText}</span>`
+        : '';
       const featureHtml = pl.checks
-        ? `<ul class="sub-checks">${headline ? `<li class="sub-headline"><span class="mk">★</span><span class="tx"><span class="sub-hval">${headline}</span>${hsub ? `<span class="sub-hsub">${hsub}</span>` : ''}</span></li>` : ''}${pl.checks.map(c => `
-            <li class="${c.on ? 'on' : ''} ${c.half ? 'half' : ''}"><span class="mk">✓</span><span class="tx">${c.text}</span></li>`).join('')}</ul>`
-        : `<ul class="sub-rows">${pl.rows.map(r => `<li><span>${r[0]}</span><b>${r[1]}</b></li>`).join('')}</ul>`;
+        ? `<ul class="sub-checks flex flex-col gap-2 text-xs leading-snug">${headline ? `<li class="sub-headline flex items-start gap-2">${ICON_STAR}<span class="tx"><span class="sub-hval">${headline}</span>${hsub ? `<span class="sub-hsub">${hsub}</span>` : ''}</span></li>` : ''}${pl.checks.map(c => `
+            <li class="${c.on ? 'on' : ''} ${c.half ? 'half' : ''} flex items-start gap-2">${ICON_CHECK}<span class="tx">${c.text}</span></li>`).join('')}</ul>`
+        : `<ul class="flex flex-col gap-2 border-t border-dashed border-line pt-3 text-xs">${pl.rows.map(r => `<li class="flex justify-between gap-3"><span class="text-faint">${r[0]}</span><b class="text-right font-semibold text-ink">${r[1]}</b></li>`).join('')}</ul>`;
       return `
-      <div class="sub-card${pl.featured ? ' sub-card-featured' : ''}">
-        <div class="sub-card-top"><span class="sub-plan-name">${pl.name}</span>${showBadge ? `<span class="sub-badge">${showBadge}</span>` : ''}</div>
-        ${pl.tagline ? `<div class="sub-plan-sub">${pl.tagline}</div>` : ''}
+      <div class="sub-card${isFeatured ? ' sub-card-featured' : ''}">
+        ${badgeHtml}
+        <div class="flex items-center justify-between gap-3">
+          <span class="text-sm font-semibold text-ink">${pl.name}</span>
+          ${isFeatured ? '' : badgeHtml}
+        </div>
+        ${pl.tagline ? `<div class="-mt-1 text-xs text-muted">${pl.tagline}</div>` : ''}
         <div class="sub-price"><span class="cur">${p.cur}</span><span class="num">${price}</span><span class="unit">${unit}</span></div>
-        <div class="sub-price-note">${showNote}</div>
+        <div class="min-h-[15px] text-[11px] text-warn">${showNote}</div>
         ${featureHtml}
       </div>`;
     }).join('');
     const billingToggle = p.billing ? `
-      <div class="toggle sub-billing">
-        ${p.billing.map(b => `<button data-period="${b.id}" class="${b.id === period ? 'active' : ''}" title="${b.sub}">${b.label}</button>`).join('')}
+      <div class="seg sub-billing">
+        ${p.billing.map(b => `<button data-period="${b.id}" class="seg-btn${b.id === period ? ' active' : ''}" title="${b.sub}">${b.label}</button>`).join('')}
       </div>` : '';
     return `
       <section class="sub-group" data-cat="${p.cat}" data-name="${p.name}">
-        <div class="sub-group-head">
-          <div class="group-title">
-            <h2>${p.name}</h2>
-            <a href="${p.link}" target="_blank" rel="noopener">官方来源</a>
+        <div class="mb-2 flex flex-wrap items-center justify-between gap-3">
+          <div class="flex items-baseline gap-2.5">
+            <h2 class="text-lg font-semibold text-ink">${p.name}</h2>
+            <a class="text-[11px] font-medium text-indigo-400 transition-colors hover:text-indigo-300 hover:underline" href="${p.link}" target="_blank" rel="noopener">官方来源</a>
           </div>
-          <div class="sub-group-ctl">
+          <div class="flex flex-wrap items-center gap-3">
             ${billingToggle}
             <span class="sub-cat-tag">${SUB_CAT_INFO[p.cat]}</span>
           </div>
         </div>
-        <p class="note">${p.note}</p>
+        <p class="note mb-4">${p.note}</p>
         <div class="sub-grid">${cards}</div>
       </section>`;
   }).join('');
