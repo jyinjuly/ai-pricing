@@ -610,7 +610,8 @@
 </div>
 
 <script>
-const dsModels = ['deepseek-v4-flash', 'deepseek-v4-pro', 'deepseek-v4-flash-vision-exp'];
+// DeepSeek 只展示模型版本名
+const dsModels = ['DeepSeek-V4.1-Flash', 'DeepSeek-V4-Pro-0813'];
 const kimiModels = ['kimi-k3', 'kimi-k2.7-code', 'kimi-k2.7-code-highspeed', 'kimi-k2.6'];
 const glmModels = ['GLM-5.3', 'GLM-5.3-Flash', 'GLM-5.2'];
 const mmModels = ['MiniMax-M3 ≤512k', 'MiniMax-M3 >512k', 'MiniMax-M2.7', 'MiniMax-M2.7-highspeed'];
@@ -630,10 +631,11 @@ const dbModels = [
 ];
 
 // DeepSeek 高峰价；空闲价 = 高峰价 × 0.5
+// 顺序对应 DeepSeek-V4.1-Flash / DeepSeek-V4-Pro-0813
 const dsPeakData = {
-  hit:  [0.10, 0.30, 0.10],
-  miss: [3.0,  9.0,  3.0 ],
-  out:  [9.0,  27.0, 9.0 ]
+  hit:  [0.04, 0.30],
+  miss: [2.0,  9.0 ],
+  out:  [8.0,  27.0]
 };
 
 // Kimi 统一价，不分时段
@@ -739,7 +741,8 @@ const baseOption = (values, models, labelFormatter, gridBottom) => {
   };
 };
 
-const dsLabelFmt = v => v.replace('deepseek-v4-', 'deepseek-v4-\n');
+// 'DeepSeek-V4.1-Flash' → 前缀 / 版本 2 行
+const dsLabelFmt = v => v.replace('DeepSeek-', 'DeepSeek-\n');
 const kimiLabelFmt = v => v.replace(/-/g, '-\n');
 const glmLabelFmt = v => v;
 const mmLabelFmt = v => v.replace(/-/g, '-\n').replace(' ', '\n');
