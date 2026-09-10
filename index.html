@@ -33,12 +33,17 @@
     font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
     background: var(--page-bg);
     color: var(--text);
-    padding: 32px 24px;
+    padding: 0 24px 32px;
     transition: background-color .25s, color .25s;
   }
   /* 宽屏拉宽：92% 视口宽，上限 1760px */
   .container { width: min(92%, 1760px); margin: 0 auto; }
-  header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-bottom: 8px; }
+  header {
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;
+    position: sticky; top: 0; z-index: 300;
+    background: var(--page-bg); padding: 12px 0; margin-bottom: 16px;
+    transition: background-color .25s;
+  }
   h1 { font-size: 24px; font-weight: 600; }
   .controls { display: flex; gap: 12px; flex-wrap: wrap; }
   .toggle {
@@ -110,6 +115,8 @@
   .brand img { width: 44px; height: 44px; border-radius: 12px; box-shadow: var(--shadow); }
   .brand-text { font-size: 20px; font-weight: 700; line-height: 1.15; display: flex; flex-direction: column; }
   .brand-text em { font-style: normal; font-size: 10px; font-weight: 600; letter-spacing: 2.5px; color: var(--text-3); }
+  /* 头部右侧：导航链接（平铺）+ 主题图标按钮 */
+  .header-right { display: flex; align-items: center; gap: 10px; }
   .nav-links { display: flex; gap: 4px; flex-wrap: wrap; }
   .nav-links a {
     font-size: 14px; color: var(--text-2); text-decoration: none;
@@ -117,6 +124,14 @@
   }
   .nav-links a:hover { color: var(--text); background: var(--toggle-bg); }
   .nav-links a.active { color: var(--accent); font-weight: 600; background: var(--chip-active-bg); }
+  .icon-btn {
+    width: 38px; height: 38px; border: 1px solid var(--border); border-radius: 10px;
+    background: var(--card-bg); color: var(--text-2); cursor: pointer; padding: 0;
+    display: inline-flex; align-items: center; justify-content: center;
+    transition: all .2s; font-family: inherit;
+  }
+  .icon-btn:hover { border-color: var(--hover-border); color: var(--text); }
+  .icon-btn svg { width: 20px; height: 20px; }
   /* 模块视图顶部工具条（说明 + 控制开关） */
   .view-toolbar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; }
   .view-toolbar .note { margin: 0; }
@@ -132,9 +147,8 @@
   .hero-slogan-sub { font-size: 15px; color: var(--text-2); margin-top: 10px; }
   /* 首页模块导航卡片 */
   .modules { margin-top: 36px; }
-  .modules-title { font-size: 20px; font-weight: 600; text-align: center; }
-  .modules-sub { font-size: 13px; color: var(--text-3); text-align: center; margin: 6px 0 22px; }
-  .module-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 22px; }
+  /* 轨道最小宽 min(340px,100%)：窄屏容器不足 340px 时收缩为通栏，防止横向溢出 */
+  .module-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(340px, 100%), 1fr)); gap: 22px; }
   .module-card {
     display: flex; gap: 20px; background: var(--card-bg); border: 1px solid var(--border);
     border-radius: 14px; padding: 22px; box-shadow: var(--shadow);
@@ -166,11 +180,12 @@
   .il-check { stroke: var(--accent); stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
   .il-line { stroke: var(--border); stroke-width: 5; stroke-linecap: round; }
   @media (max-width: 560px) {
+    body { padding: 0 14px 32px; }
     .hero { padding: 40px 16px 32px; }
     .hero-logo { width: 108px; height: 108px; }
     .hero-title { font-size: 32px; }
     .hero-slogan { font-size: 17px; }
-    .module-card { flex-direction: column; }
+    .module-card { flex-direction: column; padding: 18px; }
     .module-illus { width: 100%; }
   }
   /* 订阅套餐模块 */
@@ -240,16 +255,20 @@
       <img src="assets/logo.png" alt="农夫AI Logo">
       <span class="brand-text">农夫AI<em>NONGFU AI</em></span>
     </a>
-    <nav class="nav-links">
-      <a href="#home" id="navHome" class="active">首页</a>
-      <a href="#pricing" id="navPricing">API 价格</a>
-      <a href="#subscribe" id="navSubs">订阅套餐</a>
-    </nav>
-    <div class="controls">
-      <div class="toggle">
-        <button id="btnLight" class="active">明亮</button>
-        <button id="btnDark">暗黑</button>
-      </div>
+    <div class="header-right">
+      <nav class="nav-links">
+        <a href="#pricing" id="navPricing">API 价格</a>
+        <a href="#subscribe" id="navSubs">订阅套餐</a>
+      </nav>
+      <button id="btnTheme" class="icon-btn" title="切换明亮 / 暗黑主题" aria-label="切换主题">
+        <svg id="iconSun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="display:none">
+          <circle cx="12" cy="12" r="4"/>
+          <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>
+        </svg>
+        <svg id="iconMoon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+      </button>
     </div>
   </header>
 
@@ -260,12 +279,10 @@
       <h1 class="hero-title">农夫AI</h1>
       <p class="hero-title-en">NONGFU AI</p>
       <p class="hero-slogan">我们不生产AI，我们只是AI的搬运工！</p>
-      <p class="hero-slogan-sub">渗透到社会底层的AI，才是真正伟大的AI！</p>
+      <p class="hero-slogan-sub">渗透底层，方显伟大！</p>
     </section>
 
     <section class="modules">
-      <h2 class="modules-title">模块导航</h2>
-      <p class="modules-sub">两大模块已上线，更多模块持续开垦中……</p>
       <div class="module-grid">
         <a class="module-card" href="#pricing">
           <div class="module-illus">
@@ -869,8 +886,9 @@ const btnOff = document.getElementById('btnOff');
 const btnPeak = document.getElementById('btnPeak');
 const btnBar = document.getElementById('btnBar');
 const btnLine = document.getElementById('btnLine');
-const btnLight = document.getElementById('btnLight');
-const btnDark = document.getElementById('btnDark');
+const btnTheme = document.getElementById('btnTheme');
+const iconSun = document.getElementById('iconSun');
+const iconMoon = document.getElementById('iconMoon');
 const btnMmStd = document.getElementById('btnMmStd');
 const btnMmPri = document.getElementById('btnMmPri');
 function setPeriod(p) {
@@ -892,12 +910,12 @@ btnLine.onclick = () => setChartType('line');
 function setTheme(t) {
   theme = t;
   document.body.dataset.theme = t; // CSS 变量随 body[data-theme] 覆盖
-  btnLight.classList.toggle('active', t === 'light');
-  btnDark.classList.toggle('active', t === 'dark');
+  // 明亮主题显示月亮（点击切暗黑），暗黑主题显示太阳（点击切明亮）
+  iconSun.style.display = t === 'dark' ? '' : 'none';
+  iconMoon.style.display = t === 'dark' ? 'none' : '';
   render(); // 重设 option 应用图表配色
 }
-btnLight.onclick = () => setTheme('light');
-btnDark.onclick = () => setTheme('dark');
+btnTheme.onclick = () => setTheme(theme === 'light' ? 'dark' : 'light');
 function setMmTier(t) {
   mmTier = t;
   btnMmStd.classList.toggle('active', t === 'std');
@@ -1384,11 +1402,9 @@ document.getElementById('subSections').addEventListener('click', e => {
 const viewHome = document.getElementById('view-home');
 const viewPricing = document.getElementById('view-pricing');
 const viewSubs = document.getElementById('view-subscribe');
-const navHome = document.getElementById('navHome');
 const navPricing = document.getElementById('navPricing');
 const navSubs = document.getElementById('navSubs');
 function setView(v) {
-  navHome.classList.toggle('active', v === 'home');
   navPricing.classList.toggle('active', v === 'pricing');
   navSubs.classList.toggle('active', v === 'subs');
   viewHome.style.display = v === 'home' ? '' : 'none';
