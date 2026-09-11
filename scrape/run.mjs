@@ -91,6 +91,12 @@ if (seenFlags.length) log('参数：' + seenFlags.join(' ') + '\n');
 const WEBHOOK = process.env.SCRAPE_WEBHOOK || '';
 const SITE_URL = process.env.SCRAPE_SITE_URL || '';
 
+// 通知策略（环境变量 SCRAPE_NOTIFY）：
+//   always  = 每次运行都推送；成功且无变化时发一条「采集成功」回执 —— 默认
+//   changes = 只有价格变化、或出问题时才推送
+//   alerts  = 只在出问题时才推送
+const NOTIFY_MODE = (process.env.SCRAPE_NOTIFY || 'always').trim().toLowerCase();
+
 /**
  * 各家的「成功」判定标准不一样，而且钉钉**失败时 HTTP 状态码依然是 200**，
  * 光看 res.ok 会把失败误判成发送成功。所以必须解析响应体：
@@ -352,11 +358,17 @@ if (!succeeded.length) {
     at: startedAt.toISOString(), durationMs: Date.now() - startedAt.getTime(),
     ok: false, written: false, results: results.map(({ patch, ...r }) => r)
   };
-  writeAtomic(REPORT_FILE, JSON.stringify(report, null, 2) + '\n');
-  await notify('全部适配器失败', [
-    '本轮 7 家厂商一个都没抓到，data.json 保持不变。',
-    ...failed.map(f => `· ${f.label || f.vendor}：${f.error}`)
-  ]);
+  if (DRY) {
+    log('--dry 模式：未写入任何文件，也未发送任何告警。');
+    log('  ⓘ 按本次结果，正式运行会推送 1 条「全部适配器失败」。');
+    console.log(JSON.stringify(report, null, 2));
+  } else {
+    writeAtomic(REPORT_FILE, JSON.stringify(report, null, 2) + '\n');
+    await notify('全部适配器失败', [
+      '本轮 7 家厂商一个都没抓到，data.json 保持不变。',
+      ...failed.map(f => `· ${f.label || f.vendor}：${f.error}`)
+    ]);
+  }
   process.exit(2);
 }
 
@@ -377,11 +389,18 @@ const anomalies = findAnomalies(before, after);
 if (errors.length) {
   console.error('\n校验未通过，本次结果被丢弃（data.json 保持不变）：');
   for (const e of errors) console.error('  ✗ ' + e);
-  writeAtomic(REPORT_FILE, JSON.stringify({
+  const report = {
     at: startedAt.toISOString(), ok: false, written: false, errors,
     results: results.map(({ patch, ...r }) => r)
-  }, null, 2) + '\n');
-  await notify('数据校验未通过', ['本次结果已丢弃，data.json 保持不变。', ...errors.slice(0, 8)]);
+  };
+  if (DRY) {
+    log('--dry 模式：未写入任何文件，也未发送任何告警。');
+    log('  ⓘ 按本次结果，正式运行会推送 1 条「数据校验未通过」。');
+    console.log(JSON.stringify(report, null, 2));
+  } else {
+    writeAtomic(REPORT_FILE, JSON.stringify(report, null, 2) + '\n');
+    await notify('数据校验未通过', ['本次结果已丢弃，data.json 保持不变。', ...errors.slice(0, 8)]);
+  }
   process.exit(3);
 }
 
@@ -410,8 +429,45 @@ const report = {
   results: results.map(({ patch, ...r }) => r)
 };
 
+/* ---------------------------------------------------------------- 推送内容
+   策略见顶部 NOTIFY_MODE（默认 always：成功也推）。
+   成功时那条就是「跑过了」的回执 —— 否则「任务没跑」和「跑了但没事」
+   在手机上完全无法区分，而前者恰恰是无人值守最需要发现的故障。 */
+const alertLines = [];
+if (failed.length) alertLines.push('抓取失败：' + failed.map(f => `${f.label || f.vendor}(${f.error})`).join('、'));
+if (anomalies.length) alertLines.push(...anomalies.slice(0, 6).map(a => `⚠ ${a.path}: ${a.from} → ${a.to}（${a.note}）`));
+if (changes.length) {
+  alertLines.push(`价格更新 ${changes.length} 处：`);
+  for (const c of changes.slice(0, 8)) alertLines.push(`· ${c.path}: ${c.from} → ${c.to}`);
+  if (changes.length > 8) alertLines.push(`· …其余 ${changes.length - 8} 处见 scrape/last-run.json`);
+}
+if (!failed.length && !anomalies.length && !changes.length) {
+  alertLines.push(`${succeeded.length} 家厂商全部抓取成功，价格无变化。`);
+}
+alertLines.push(
+  `耗时 ${((Date.now() - startedAt.getTime()) / 1000).toFixed(1)} 秒 · 数据版本 v${before.meta?.version ?? '?'}` +
+  (changes.length ? ` → v${(before.meta?.version || 0) + 1}` : '')
+);
+
+// 标题必须反映真实原因：只是正常调价时不能说成「异常波动」
+const alertTitle = failed.length ? '部分厂商抓取失败'
+  : anomalies.length ? '价格出现异常波动'
+  : changes.length ? '价格已更新'
+  : '采集成功';
+
+const hasProblem = failed.length > 0 || anomalies.length > 0;
+const shouldNotify = NOTIFY_MODE === 'alerts' ? hasProblem
+  : NOTIFY_MODE === 'changes' ? (hasProblem || changes.length > 0)
+  : true; // always
+
 if (DRY) {
-  log('\n--dry 模式：未写入任何文件。');
+  log('\n--dry 模式：未写入任何文件，也未发送任何告警。');
+  if (shouldNotify) {
+    log(`  ⓘ 按本次结果，正式运行会推送 1 条「${alertTitle}」：`);
+    for (const l of alertLines.slice(0, 5)) log('      ' + l);
+  } else {
+    log(`  ⓘ SCRAPE_NOTIFY=${NOTIFY_MODE}，本次正式运行不推送。`);
+  }
   console.log(JSON.stringify(report, null, 2));
   process.exit(0);
 }
@@ -440,13 +496,9 @@ if (changes.length) {
 writeAtomic(REPORT_FILE, JSON.stringify(report, null, 2) + '\n');
 log(`运行报告：scrape/last-run.json`);
 
-// 有适配器失败、或价格出现异常波动时才告警
-const alertLines = [];
-if (failed.length) alertLines.push('抓取失败：' + failed.map(f => `${f.label || f.vendor}(${f.error})`).join('、'));
-if (anomalies.length) alertLines.push(...anomalies.slice(0, 6).map(a => `⚠ ${a.path}: ${a.from} → ${a.to}（${a.note}）`));
-if (changes.length) alertLines.push(`本次共更新 ${changes.length} 处价格。`);
-// 标题必须反映真实原因：只是正常调价时不能说成「异常波动」
-const alertTitle = failed.length ? '部分厂商抓取失败'
-  : anomalies.length ? '价格出现异常波动'
-  : '价格已更新';
-if (alertLines.length) await notify(alertTitle, alertLines);
+// 推送（内容与标题已在前面按 NOTIFY_MODE 备好）
+if (shouldNotify) {
+  await notify(alertTitle, alertLines);
+} else {
+  log(`（SCRAPE_NOTIFY=${NOTIFY_MODE}，本次无需推送）`);
+}
