@@ -1,2 +1,9 @@
 .trae
 .vscode
+
+# 采集运行日志（不入库，属于运行时噪音）
+scrape/run.log
+scrape/last-run.json
+# 侦察/临时产物
+_recon/
+data-history

@@ -269,6 +269,7 @@
   /* 触屏点按反馈：替代 hover 作为即时反馈 */
   .icon-btn:active { background: var(--active); }
   .nav-link:active { color: var(--text); }
+
 </style>
 </head>
 <body data-theme="dark" class="antialiased">
@@ -542,7 +543,7 @@
           <a href="https://bigmodel.cn/pricing" target="_blank" rel="noopener" class="text-[11px] font-medium text-indigo-400 transition-colors hover:text-indigo-300 hover:underline">官方来源</a>
         </div>
       </div>
-      <p class="note">GLM-5.3-Flash 所示为限时 5 折价（原价 0.23 / 0.8 / 2.8 元）</p>
+      <p class="note">价格为官方按量付费标准价（元 / 百万 tokens），由采集脚本自动更新；批量推理（Batch API）另有优惠，详见官方文档</p>
       <div class="mt-3 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
         <div class="card min-w-0 rounded-2xl border border-line/80 bg-surface/80 p-4 shadow-lg shadow-black/10 transition-colors duration-200 hover:border-linehi">
           <h3 class="mb-3 text-[15px] font-semibold text-ink">输入（缓存命中）</h3>
@@ -617,7 +618,7 @@
           <a href="https://platform.qianwenai.com/pricing/api" target="_blank" rel="noopener" class="text-[11px] font-medium text-indigo-400 transition-colors hover:text-indigo-300 hover:underline">官方来源</a>
         </div>
       </div>
-      <p class="note">qwen3.7-plus 所示为限时 8 折价；qwen3.7-plus / qwen3.7-flash 按输入长度分档计费</p>
+      <p class="note">qwen3.7-plus / qwen3.7-flash 按输入长度分档计费；表中为官方当前实际计费价（已含在售折扣），由采集脚本自动更新</p>
       <div class="mt-3 grid grid-cols-1 gap-5">
         <div class="card min-w-0 rounded-2xl border border-line/80 bg-surface/80 p-4 shadow-lg shadow-black/10 transition-colors duration-200 hover:border-linehi">
           <h3 class="mb-3 text-[15px] font-semibold text-ink">输入（缓存命中）</h3>
@@ -665,7 +666,7 @@
 
   <!-- ============================= 订阅套餐 ============================= -->
   <div id="view-subscribe" style="display:none">
-    <p class="note mb-6">订阅套餐（Coding Plan / Token Plan / 会员 / Agent Plan）数据为<strong class="warn">静态采集快照</strong>，价格与额度随厂商频繁调整，请以各官方页面为准</p>
+    <p class="note mb-6">订阅套餐（Coding Plan / Token Plan / 会员 / Agent Plan）数据为<strong class="warn">采集快照</strong>，页面会自动同步最新数据；价格与额度随厂商频繁调整，请以各官方页面为准</p>
     <div class="mb-6 flex flex-wrap items-center gap-3">
       <span class="w-14 shrink-0 text-[13px] text-muted">类型</span>
       <div class="seg" id="subCatFilter">
@@ -683,18 +684,19 @@
 
 <script>
 // DeepSeek 只展示模型版本名
-const dsModels = ['DeepSeek-V4.1-Flash', 'DeepSeek-V4-Pro-0813'];
-const kimiModels = ['kimi-k3', 'kimi-k2.7-code', 'kimi-k2.7-code-highspeed', 'kimi-k2.6'];
-const glmModels = ['GLM-5.3', 'GLM-5.3-Flash', 'GLM-5.2'];
-const mmModels = ['MiniMax-M3 ≤512k', 'MiniMax-M3 >512k', 'MiniMax-M2.7', 'MiniMax-M2.7-highspeed'];
-const mimoModels = ['mimo-v2.5-pro', 'mimo-v2.5'];
-const qwenModels = [
+// 以下数据结构均为可被 data.json 覆盖的「内联兜底值」：拉取失败时页面照常可用
+let dsModels = ['DeepSeek-V4.1-Flash', 'DeepSeek-V4-Pro-0813'];
+let kimiModels = ['kimi-k3', 'kimi-k2.7-code', 'kimi-k2.7-code-highspeed', 'kimi-k2.6'];
+let glmModels = ['GLM-5.3', 'GLM-5.3-Flash', 'GLM-5.2'];
+let mmModels = ['MiniMax-M3 ≤512k', 'MiniMax-M3 >512k', 'MiniMax-M2.7', 'MiniMax-M2.7-highspeed'];
+let mimoModels = ['mimo-v2.5-pro', 'mimo-v2.5'];
+let qwenModels = [
   'qwen3.8-max-0902', 'qwen3.8-flash', 'qwen3.8-2.4t-a95b',
   'qwen3.7-plus ≤256k', 'qwen3.7-plus 256k–1m',
   'qwen3.7-max',
   'qwen3.7-flash ≤32k', 'qwen3.7-flash 32k–256k', 'qwen3.7-flash 256k–1m'
 ];
-const dbModels = [
+let dbModels = [
   'doubao-seed-evolving ≤1024k', 'doubao-seed-2.1-pro ≤256k', 'doubao-seed-2.1-turbo ≤256k',
   'doubao-seed-2.0-pro ≤32k', 'doubao-seed-2.0-pro 32-128k', 'doubao-seed-2.0-pro 128-256k',
   'doubao-seed-2.0-lite ≤32k', 'doubao-seed-2.0-lite 32-128k', 'doubao-seed-2.0-lite 128-256k',
@@ -704,55 +706,55 @@ const dbModels = [
 
 // DeepSeek 高峰价；空闲价 = 高峰价 × 0.5
 // 顺序对应 DeepSeek-V4.1-Flash / DeepSeek-V4-Pro-0813
-const dsPeakData = {
+let dsPeakData = {
   hit:  [0.04, 0.30],
   miss: [2.0,  9.0 ],
   out:  [8.0,  27.0]
 };
 
 // Kimi 统一价，不分时段
-const kimiData = {
+let kimiData = {
   hit:  [2.0,  1.3, 2.6,  1.1 ],
   miss: [20.0, 6.5, 13.0, 6.5 ],
   out:  [100.0, 27.0, 54.0, 27.0]
 };
 
-// GLM 统一价，不分时段；GLM-5.3-Flash 为限时 5 折价
-const glmData = {
-  hit:  [2.0, 0.115, 2.0 ],
-  miss: [8.0, 0.4,   8.0 ],
-  out:  [28.0, 1.4,  28.0]
+// GLM 统一价，不分时段（内联兜底值：以自动采集的 data.json 为准）
+let glmData = {
+  hit:  [2.0, 0.23, 2.0 ],
+  miss: [8.0, 0.8,  8.0 ],
+  out:  [28.0, 2.8, 28.0]
 };
 
 // MiniMax 标准价（M3 为永久五折价）；优先层级 = 标准价 × 系数（M3 ×1.5，M2.7 不变）
-const mmStdData = {
+let mmStdData = {
   hit:  [0.42, 0.84,  0.42, 0.42],
   miss: [2.10, 4.20,  2.1,  4.2 ],
   out:  [8.40, 16.80, 8.4,  16.8]
 };
-const mmPriFactor = [1.5, 1.5, 1, 1];
+let mmPriFactor = [1.5, 1.5, 1, 1];
 
 // MiMo 统一价，不分时段
-const mimoData = {
+let mimoData = {
   hit:  [0.025, 0.02],
   miss: [3.0,   1.0 ],
   out:  [6.0,   2.0 ]
 };
 
-// Qwen 统一价，不分时段；qwen3.7-plus 为限时 8 折价
-const qwenData = {
+// Qwen 统一价，不分时段；qwen3.7-plus / 3.7-flash 按输入长度分档（现价已含在售折扣）
+let qwenData = {
   hit:  [1.5, 0.1, 1.5, 0.32, 0.96, 2.4, 0.04, 0.12, 0.24],
   miss: [12,  0.8, 12,  1.6,  4.8,  12,  0.2,  0.6,  1.2 ],
   out:  [36,  2.7, 36,  6.4,  19.2, 36,  0.8,  2.4,  4.8 ]
 };
 
 // Doubao：常规价；低延迟模式模型集不同，不提供的档位为 null（图中留空）
-const dbRegData = {
+let dbRegData = {
   hit:  [1.2, 1.2, 0.6, 0.64, 0.96, 1.92, 0.12, 0.18, 0.36, 0.04, 0.08, 0.16, 0.64, 0.96, 1.92],
   miss: [6,   6,   3,   3.2,  4.8,  9.6,  0.6,  0.9,  1.8,  0.2,  0.4,  0.8,  3.2,  4.8,  9.6 ],
   out:  [30,  30,  15,  16,   24,   48,   3.6,  5.4,  10.8, 2,    4,    8,    16,   24,   48  ]
 };
-const dbLowData = {
+let dbLowData = {
   hit:  [null, null, 1.2, 1.92, 2.88, 5.76, 0.24, 0.36, 0.72, 0.08, 0.16, 0.32, null, null, null],
   miss: [null, null, 6,   9.6, 14.4, 28.8, 1.2,  1.8,  3.6,  0.4,  0.8,  1.6,  null, null, null],
   out:  [null, null, 30,  48,  72,   144,  7.2,  10.8, 21.6, 4,    8,    16,   null, null, null]
@@ -1156,7 +1158,7 @@ window.addEventListener('resize', () => { if (menuOpen && window.innerWidth >= 6
 
 // ===== 订阅套餐模块（Coding / Token / 会员 / Agent Plan）=====
 const SUB_CAT_INFO = { coding: 'Coding Plan', token: 'Token Plan', member: '会员套餐', agent: 'Agent Plan' };
-const SUBS = [
+let SUBS = [
   {
     name: 'Kimi', cat: 'member', link: 'https://www.kimi.com/membership/pricing?tab=individual',
     note: '会员套餐：Kimi 官方会员，含 Agent 额度与 Kimi Code 调用（Plus 及以上），支持连续包月 / 连续包年',
@@ -1603,6 +1605,139 @@ function routeFromHash() {
 window.addEventListener('hashchange', routeFromHash);
 routeFromHash();
 renderSubs();
+
+/* =========================================================================
+   实时数据模块（最小方案）
+   -------------------------------------------------------------------------
+   1. 首屏仍用上方「内联兜底值」渲染 —— 打开即有内容，file:// 直接双击也能用；
+   2. 启动后 fetch(data.json) 拉取最新数据 → 覆盖同名变量 → 重绘图表与订阅卡片；
+   3. 之后按 meta.pollIntervalMs（默认 30s）轮询；内容没变就跳过重绘，避免闪烁；
+   4. 切回前台且数据已过期时立即补拉；
+   5. 拉取失败绝不破坏页面：继续沿用上一次成功的数据（含内联兜底值）。
+   换数据源只需改 DATA_URL；换成后端接口时保证返回同样的 JSON 结构即可。
+
+   注：顶栏不再显示同步状态点与手动刷新按钮——对访客来说那些是噪音。
+   状态仍会打到控制台，需要时可临时在页面里加回这些元素（下面的代码是空安全的）：
+     <span id="dataDot"></span><span id="dataStatus"></span>
+     <button id="btnRefresh"></button>
+   ========================================================================= */
+const DATA_URL = 'data.json';        // 数据源（相对路径 / 绝对 URL / 后端接口均可）
+const DEFAULT_POLL_MS = 30000;       // 轮询间隔兜底值，可被 data.json 的 meta.pollIntervalMs 覆盖
+
+// 可选 UI：元素不存在时全部静默跳过（顶栏已移除，保留代码便于随时加回）
+const elChip = document.getElementById('dataChip');
+const elDot = document.getElementById('dataDot');
+const elStatus = document.getElementById('dataStatus');
+const elRefresh = document.getElementById('btnRefresh');
+const DOT_COLOR = { ok: '#34D399', loading: '#FBBF24', error: '#F87171', idle: '#71717A' };
+
+let pollMs = DEFAULT_POLL_MS;   // 当前轮询间隔
+let pollTimer = 0;              // 轮询定时器
+let lastSyncAt = 0;             // 上次成功同步的时间戳
+let lastPayload = '';           // 上次成功同步的原始文本：内容未变则跳过重绘
+let lastMeta = null;            // 快照元信息
+let inFlight = false;           // 防止并发重复请求
+
+function setSyncState(state, text) {
+  if (elDot && state && DOT_COLOR[state]) elDot.style.background = DOT_COLOR[state];
+  if (elStatus && text != null) elStatus.textContent = text;
+}
+
+// 「刚刚 / N 秒前 / N 分钟前」相对时间，避免写死时间戳
+function relTime(ts) {
+  const s = Math.max(0, Math.round((Date.now() - ts) / 1000));
+  if (s < 5) return '数据已同步';
+  if (s < 60) return s + ' 秒前同步';
+  if (s < 3600) return Math.floor(s / 60) + ' 分钟前同步';
+  return new Date(ts).toLocaleTimeString('zh-CN', { hour12: false }) + ' 同步';
+}
+
+// 把远端 JSON 合并进页面状态：字段同名则覆盖，缺项保留内联兜底值
+function applyData(d) {
+  if (!d || typeof d !== 'object' || (!d.models && !d.pricing && !d.subs)) throw new Error('data.json 结构不正确');
+  const m = d.models || {};
+  const p = d.pricing || {};
+  if (Array.isArray(m.deepseek)) dsModels = m.deepseek;
+  if (Array.isArray(m.kimi)) kimiModels = m.kimi;
+  if (Array.isArray(m.glm)) glmModels = m.glm;
+  if (Array.isArray(m.minimax)) mmModels = m.minimax;
+  if (Array.isArray(m.mimo)) mimoModels = m.mimo;
+  if (Array.isArray(m.qwen)) qwenModels = m.qwen;
+  if (Array.isArray(m.doubao)) dbModels = m.doubao;
+  if (p.deepseek) dsPeakData = p.deepseek;
+  if (p.kimi) kimiData = p.kimi;
+  if (p.glm) glmData = p.glm;
+  if (p.minimaxStd) mmStdData = p.minimaxStd;
+  if (Array.isArray(p.minimaxPriFactor)) mmPriFactor = p.minimaxPriFactor;
+  if (p.mimo) mimoData = p.mimo;
+  if (p.qwen) qwenData = p.qwen;
+  if (p.doubaoReg) dbRegData = p.doubaoReg;
+  if (p.doubaoLow) dbLowData = p.doubaoLow;
+  if (Array.isArray(d.subs) && d.subs.length) SUBS = d.subs;
+  if (d.meta) {
+    lastMeta = d.meta;
+    if (Number(d.meta.pollIntervalMs) > 0) pollMs = Number(d.meta.pollIntervalMs);
+  }
+  render();       // 全部价格图表（含汇总模块）
+  renderSubs();   // 订阅套餐卡片
+  requestAnimationFrame(resizeAll);
+}
+
+// 拉取一次数据；失败时保留现状，仅提示状态
+async function refreshData() {
+  if (inFlight) return;
+  inFlight = true;
+  if (elRefresh) elRefresh.classList.add('is-loading');
+  if (!lastSyncAt) setSyncState('loading', '拉取中…');
+  try {
+    const res = await fetch(DATA_URL + '?_=' + Date.now(), { cache: 'no-store' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const text = await res.text();
+    if (text !== lastPayload) {          // 内容有变化才重绘：轮询不闪烁、不动画重放
+      applyData(JSON.parse(text));
+      lastPayload = text;
+      // 顶栏状态点已移除，改在控制台留一条同步记录（只在内容真的变了时打，不刷屏）
+      const meta0 = lastMeta || {};
+      console.info('[data] 已同步 ' + DATA_URL + (meta0.version ? '（v' + meta0.version + '）' : '') +
+        (meta0.source ? ' · ' + meta0.source : ''));
+    }
+    lastSyncAt = Date.now();
+    const meta = lastMeta || {};
+    if (elChip) elChip.title = [
+      '数据源：' + DATA_URL + (meta.version ? '（v' + meta.version + '）' : ''),
+      meta.source ? '采集方式：' + meta.source : '',
+      meta.updatedAt ? '快照时间：' + new Date(meta.updatedAt).toLocaleString('zh-CN') : ''
+    ].filter(Boolean).join('\n');
+    setSyncState('ok', relTime(lastSyncAt));
+  } catch (err) {
+    setSyncState('error', lastSyncAt ? relTime(lastSyncAt) : '离线 · 内置数据');
+    // 顶栏状态点已移除，失败只在控制台提示一次，不打扰访客
+    console.warn('[data] 拉取 ' + DATA_URL + ' 失败，继续使用' + (lastSyncAt ? '上一次成功的数据' : '内置兜底数据') + '：' + err.message);
+    if (!lastSyncAt) {
+      console.warn('[data] 若以 file:// 直接打开页面，浏览器会禁止读取本地 JSON —— 请用 node serve.js 启动本地服务。');
+    }
+  } finally {
+    inFlight = false;
+    if (elRefresh) elRefresh.classList.remove('is-loading');
+  }
+}
+
+function schedulePoll() {
+  clearInterval(pollTimer);
+  pollTimer = setInterval(() => { if (!document.hidden) refreshData(); }, pollMs);
+}
+
+if (elRefresh) elRefresh.onclick = () => refreshData();
+// 移动端 / 后台标签页定时器会被冻结，回到前台若已过期就立即补拉
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && Date.now() - lastSyncAt > pollMs) refreshData();
+});
+// 每 5 秒刷新一次相对时间文案（仅在状态点存在时才有意义）
+if (elStatus) setInterval(() => { if (lastSyncAt) setSyncState(null, relTime(lastSyncAt)); }, 5000);
+
+setSyncState('idle', '初始化…');
+refreshData().then(schedulePoll); // 首次拉取完成后再按 meta 里的间隔排轮询
+
 </script>
 </body>
 </html>

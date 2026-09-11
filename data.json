@@ -1,0 +1,1370 @@
+{
+  "meta": {
+    "updatedAt": "2026-09-11T04:36:28.934Z",
+    "version": 2,
+    "pollIntervalMs": 30000,
+    "source": "自动采集：DeepSeek、火山方舟 Doubao、智谱 GLM、Kimi、小米 MiMo、MiniMax、阿里千问"
+  },
+  "models": {
+    "deepseek": [
+      "DeepSeek-V4.1-Flash",
+      "DeepSeek-V4-Pro-0813"
+    ],
+    "kimi": [
+      "kimi-k3",
+      "kimi-k2.7-code",
+      "kimi-k2.7-code-highspeed",
+      "kimi-k2.6"
+    ],
+    "glm": [
+      "GLM-5.3",
+      "GLM-5.3-Flash",
+      "GLM-5.2"
+    ],
+    "minimax": [
+      "MiniMax-M3 ≤512k",
+      "MiniMax-M3 >512k",
+      "MiniMax-M2.7",
+      "MiniMax-M2.7-highspeed"
+    ],
+    "mimo": [
+      "mimo-v2.5-pro",
+      "mimo-v2.5"
+    ],
+    "qwen": [
+      "qwen3.8-max-0902",
+      "qwen3.8-flash",
+      "qwen3.8-2.4t-a95b",
+      "qwen3.7-plus ≤256k",
+      "qwen3.7-plus 256k–1m",
+      "qwen3.7-max",
+      "qwen3.7-flash ≤32k",
+      "qwen3.7-flash 32k–256k",
+      "qwen3.7-flash 256k–1m"
+    ],
+    "doubao": [
+      "doubao-seed-evolving ≤1024k",
+      "doubao-seed-2.1-pro ≤256k",
+      "doubao-seed-2.1-turbo ≤256k",
+      "doubao-seed-2.0-pro ≤32k",
+      "doubao-seed-2.0-pro 32-128k",
+      "doubao-seed-2.0-pro 128-256k",
+      "doubao-seed-2.0-lite ≤32k",
+      "doubao-seed-2.0-lite 32-128k",
+      "doubao-seed-2.0-lite 128-256k",
+      "doubao-seed-2.0-mini ≤32k",
+      "doubao-seed-2.0-mini 32-128k",
+      "doubao-seed-2.0-mini 128-256k",
+      "doubao-seed-2.0-code ≤32k",
+      "doubao-seed-2.0-code 32-128k",
+      "doubao-seed-2.0-code 128-256k"
+    ]
+  },
+  "pricing": {
+    "deepseek": {
+      "hit": [
+        0.04,
+        0.3
+      ],
+      "miss": [
+        2,
+        9
+      ],
+      "out": [
+        8,
+        27
+      ]
+    },
+    "kimi": {
+      "hit": [
+        2,
+        1.3,
+        2.6,
+        1.1
+      ],
+      "miss": [
+        20,
+        6.5,
+        13,
+        6.5
+      ],
+      "out": [
+        100,
+        27,
+        54,
+        27
+      ]
+    },
+    "glm": {
+      "hit": [
+        2,
+        0.23,
+        2
+      ],
+      "miss": [
+        8,
+        0.8,
+        8
+      ],
+      "out": [
+        28,
+        2.8,
+        28
+      ]
+    },
+    "minimaxStd": {
+      "hit": [
+        0.42,
+        0.84,
+        0.42,
+        0.42
+      ],
+      "miss": [
+        2.1,
+        4.2,
+        2.1,
+        4.2
+      ],
+      "out": [
+        8.4,
+        16.8,
+        8.4,
+        16.8
+      ]
+    },
+    "minimaxPriFactor": [
+      1.5,
+      1.5,
+      1,
+      1
+    ],
+    "mimo": {
+      "hit": [
+        0.025,
+        0.02
+      ],
+      "miss": [
+        3,
+        1
+      ],
+      "out": [
+        6,
+        2
+      ]
+    },
+    "qwen": {
+      "hit": [
+        1.5,
+        0.1,
+        1.5,
+        0.32,
+        0.96,
+        2.4,
+        0.04,
+        0.12,
+        0.24
+      ],
+      "miss": [
+        12,
+        0.8,
+        12,
+        1.6,
+        4.8,
+        12,
+        0.2,
+        0.6,
+        1.2
+      ],
+      "out": [
+        36,
+        2.7,
+        36,
+        6.4,
+        19.2,
+        36,
+        0.8,
+        2.4,
+        4.8
+      ]
+    },
+    "doubaoReg": {
+      "hit": [
+        1.2,
+        1.2,
+        0.6,
+        0.64,
+        0.96,
+        1.92,
+        0.12,
+        0.18,
+        0.36,
+        0.04,
+        0.08,
+        0.16,
+        0.64,
+        0.96,
+        1.92
+      ],
+      "miss": [
+        6,
+        6,
+        3,
+        3.2,
+        4.8,
+        9.6,
+        0.6,
+        0.9,
+        1.8,
+        0.2,
+        0.4,
+        0.8,
+        3.2,
+        4.8,
+        9.6
+      ],
+      "out": [
+        30,
+        30,
+        15,
+        16,
+        24,
+        48,
+        3.6,
+        5.4,
+        10.8,
+        2,
+        4,
+        8,
+        16,
+        24,
+        48
+      ]
+    },
+    "doubaoLow": {
+      "hit": [
+        null,
+        null,
+        1.2,
+        1.92,
+        2.88,
+        5.76,
+        0.24,
+        0.36,
+        0.72,
+        0.08,
+        0.16,
+        0.32,
+        null,
+        null,
+        null
+      ],
+      "miss": [
+        null,
+        null,
+        6,
+        9.6,
+        14.4,
+        28.8,
+        1.2,
+        1.8,
+        3.6,
+        0.4,
+        0.8,
+        1.6,
+        null,
+        null,
+        null
+      ],
+      "out": [
+        null,
+        null,
+        30,
+        48,
+        72,
+        144,
+        7.2,
+        10.8,
+        21.6,
+        4,
+        8,
+        16,
+        null,
+        null,
+        null
+      ]
+    }
+  },
+  "subs": [
+    {
+      "name": "Kimi",
+      "cat": "member",
+      "link": "https://www.kimi.com/membership/pricing?tab=individual",
+      "note": "会员套餐：Kimi 官方会员，含 Agent 额度与 Kimi Code 调用（Plus 及以上），支持连续包月 / 连续包年",
+      "cur": "¥",
+      "billing": [
+        {
+          "id": "month",
+          "label": "月包",
+          "sub": "连续包月"
+        },
+        {
+          "id": "year",
+          "label": "年包",
+          "sub": "连续包年"
+        }
+      ],
+      "plans": [
+        {
+          "name": "Go",
+          "tagline": "日常使用",
+          "price": {
+            "month": "49",
+            "year": "39"
+          },
+          "priceNote": {
+            "month": "按月计费",
+            "year": "按年计费 ¥468"
+          },
+          "origPrice": {
+            "year": "49"
+          },
+          "checks": [
+            {
+              "text": "更多 Agent 额度",
+              "on": true
+            },
+            {
+              "text": "Office 文件处理",
+              "half": true
+            },
+            {
+              "text": "深度研究",
+              "half": true
+            },
+            {
+              "text": "网站部署",
+              "half": true
+            }
+          ]
+        },
+        {
+          "name": "Plus",
+          "tagline": "效率升级",
+          "price": {
+            "month": "99",
+            "year": "79"
+          },
+          "priceNote": {
+            "month": "按月计费",
+            "year": "按年计费 ¥948"
+          },
+          "origPrice": {
+            "year": "99"
+          },
+          "checks": [
+            {
+              "text": "2 倍 Agent 额度",
+              "on": true
+            },
+            {
+              "text": "Office 文件处理",
+              "half": true
+            },
+            {
+              "text": "深度研究",
+              "half": true
+            },
+            {
+              "text": "网站部署",
+              "half": true
+            },
+            {
+              "text": "Kimi Code 可调用",
+              "on": true
+            }
+          ]
+        },
+        {
+          "name": "Pro",
+          "tagline": "专业优选",
+          "price": {
+            "month": "199",
+            "year": "159"
+          },
+          "priceNote": {
+            "month": "按月计费",
+            "year": "按年计费 ¥1,908"
+          },
+          "origPrice": {
+            "year": "199"
+          },
+          "checks": [
+            {
+              "text": "4 倍 Agent 额度",
+              "on": true
+            },
+            {
+              "text": "Office 文件处理",
+              "half": true
+            },
+            {
+              "text": "深度研究",
+              "half": true
+            },
+            {
+              "text": "网站部署",
+              "half": true
+            },
+            {
+              "text": "Agent 多任务并行",
+              "on": true
+            },
+            {
+              "text": "Kimi Code 可调用",
+              "on": true
+            }
+          ]
+        },
+        {
+          "name": "Max",
+          "tagline": "全能尊享",
+          "price": {
+            "month": "699",
+            "year": "559"
+          },
+          "priceNote": {
+            "month": "按月计费",
+            "year": "按年计费 ¥6,708"
+          },
+          "origPrice": {
+            "year": "699"
+          },
+          "checks": [
+            {
+              "text": "14 倍 Agent 额度",
+              "on": true
+            },
+            {
+              "text": "Office 文件处理",
+              "half": true
+            },
+            {
+              "text": "深度研究",
+              "half": true
+            },
+            {
+              "text": "网站部署",
+              "half": true
+            },
+            {
+              "text": "Agent 多任务并行",
+              "on": true
+            },
+            {
+              "text": "Kimi Code 可调用",
+              "on": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "智谱 GLM",
+      "cat": "coding",
+      "link": "https://bigmodel.cn/glm-coding",
+      "note": "Coding Plan：支持 GLM-5.3 等旗舰模型，覆盖 ZCode、Claude Code 等 20+ 编程工具；按周积分限额，支持月 / 季 / 年计费",
+      "cur": "¥",
+      "billing": [
+        {
+          "id": "month",
+          "label": "月包",
+          "sub": "连续包月"
+        },
+        {
+          "id": "quarter",
+          "label": "季包",
+          "sub": "连续包季"
+        },
+        {
+          "id": "year",
+          "label": "年包",
+          "sub": "连续包年"
+        }
+      ],
+      "plans": [
+        {
+          "name": "Lite",
+          "tagline": "日常使用",
+          "price": {
+            "month": "118",
+            "quarter": "94.4",
+            "year": "82.6"
+          },
+          "origPrice": {
+            "quarter": "118",
+            "year": "118"
+          },
+          "headline": "每周 10,000 积分",
+          "checks": [
+            {
+              "text": "逐步开放最新旗舰模型及功能",
+              "on": true
+            },
+            {
+              "text": "支持 ZCode、Claude Code 等 20+ 编程工具",
+              "on": true
+            }
+          ]
+        },
+        {
+          "name": "Pro",
+          "tagline": "高频使用",
+          "badge": "最受欢迎",
+          "price": {
+            "month": "538",
+            "quarter": "430.4",
+            "year": "376.6"
+          },
+          "origPrice": {
+            "quarter": "538",
+            "year": "538"
+          },
+          "headline": "6 倍 Lite 用量额度",
+          "checks": [
+            {
+              "text": "Lite 全部权益",
+              "on": true
+            },
+            {
+              "text": "优先体验最新旗舰模型及功能",
+              "on": true
+            },
+            {
+              "text": "覆盖多款精选 MCP 工具",
+              "on": true
+            },
+            {
+              "text": "更快生成速度",
+              "on": true
+            }
+          ]
+        },
+        {
+          "name": "Max",
+          "tagline": "深度使用",
+          "price": {
+            "month": "1078",
+            "quarter": "862.4",
+            "year": "754.6"
+          },
+          "origPrice": {
+            "quarter": "1078",
+            "year": "1078"
+          },
+          "headline": "14 倍 Lite 用量额度",
+          "checks": [
+            {
+              "text": "Pro 全部权益",
+              "on": true
+            },
+            {
+              "text": "首发接入最新旗舰模型及功能",
+              "on": true
+            },
+            {
+              "text": "高峰期间专属资源优先保障",
+              "on": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "MiniMax",
+      "cat": "token",
+      "link": "https://platform.minimax.cn/subscribe/token-plan?tab=individual",
+      "note": "Token Plan：M3 / M2.7 旗舰模型与图像 / 语音共享同一额度，支持主流编程工具与 1M 长上下文",
+      "cur": "¥",
+      "unit": "",
+      "billing": [
+        {
+          "id": "month",
+          "label": "月包",
+          "sub": "连续包月"
+        },
+        {
+          "id": "year",
+          "label": "年包",
+          "sub": "连续包年"
+        }
+      ],
+      "plans": [
+        {
+          "name": "Plus",
+          "price": {
+            "month": "49",
+            "year": "490"
+          },
+          "priceNote": {
+            "month": "每月，按月订阅",
+            "year": "每年，按年订阅"
+          },
+          "origPrice": {
+            "year": "588"
+          },
+          "badge": {
+            "year": "立省 ¥98"
+          },
+          "headline": "月度约 6 亿+ token M3 用量",
+          "checks": [
+            {
+              "text": "支持 MiniMax 旗舰模型（M3 / M2.7 / 图像 / 语音）",
+              "on": true
+            },
+            {
+              "text": "可同时支持 3–4 个 Agent 并发运行",
+              "on": true
+            },
+            {
+              "text": "支持主流的编程工具，并持续扩展中",
+              "on": true
+            },
+            {
+              "text": "1M 长上下文，适合处理长文档 / 大型代码库",
+              "on": true
+            },
+            {
+              "text": "M3 原生多模态理解：图像 / 视频输入",
+              "on": true
+            },
+            {
+              "text": "文本 / 图像 / 语音 共享同一额度",
+              "on": true
+            }
+          ]
+        },
+        {
+          "name": "Max",
+          "badge": "最受欢迎",
+          "price": {
+            "month": "119",
+            "year": "1190"
+          },
+          "priceNote": {
+            "month": "每月，按月订阅",
+            "year": "每年，按年订阅"
+          },
+          "origPrice": {
+            "year": "1498"
+          },
+          "headline": "月度约 18 亿+ token M3 用量",
+          "checks": [
+            {
+              "text": "支持 MiniMax 旗舰模型（M3 / M2.7 / 图像 / 语音）",
+              "on": true
+            },
+            {
+              "text": "可同时支持 4–5 个 Agent 并发运行",
+              "on": true
+            },
+            {
+              "text": "支持主流的编程工具，并持续扩展中",
+              "on": true
+            },
+            {
+              "text": "1M 长上下文，适合处理长文档 / 大型代码库",
+              "on": true
+            },
+            {
+              "text": "M3 原生多模态理解：图像 / 视频输入",
+              "on": true
+            },
+            {
+              "text": "文本 / 图像 / 语音 共享同一额度",
+              "on": true
+            },
+            {
+              "text": "支持 Hailuo2.3 视频生成，3 条 / 日",
+              "on": true
+            }
+          ]
+        },
+        {
+          "name": "Ultra",
+          "price": {
+            "month": "469",
+            "year": "4690"
+          },
+          "priceNote": {
+            "month": "每月，按月订阅",
+            "year": "每年，按年订阅"
+          },
+          "origPrice": {
+            "year": "5628"
+          },
+          "badge": {
+            "year": "立省 ¥938"
+          },
+          "headline": "月度约 71 亿+ token M3 用量",
+          "checks": [
+            {
+              "text": "支持 MiniMax 旗舰模型（M3 / M2.7 / 图像 / 语音）",
+              "on": true
+            },
+            {
+              "text": "可同时支持 6–7 个 Agent 并发运行",
+              "on": true
+            },
+            {
+              "text": "支持主流的编程工具，并持续扩展中",
+              "on": true
+            },
+            {
+              "text": "1M 长上下文，适合处理长文档 / 大型代码库",
+              "on": true
+            },
+            {
+              "text": "M3 原生多模态理解：图像 / 视频输入",
+              "on": true
+            },
+            {
+              "text": "文本 / 图像 / 语音 共享同一额度",
+              "on": true
+            },
+            {
+              "text": "支持 Hailuo2.3 视频生成，5 条 / 日",
+              "on": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "小米 MiMo",
+      "cat": "token",
+      "link": "https://platform.xiaomimimo.com/token-plan",
+      "note": "Token Plan：V2.5 全系模型（文本 / 全模态 / 语音），支持 OpenClaw、Codex 等主流编程框架；TTS 免费，夜间 0.8x 消耗",
+      "cur": "¥",
+      "billing": [
+        {
+          "id": "month",
+          "label": "月包",
+          "sub": "连续包月"
+        },
+        {
+          "id": "year",
+          "label": "年包",
+          "sub": "连续包年"
+        }
+      ],
+      "plans": [
+        {
+          "name": "Lite",
+          "tagline": "轻量体验",
+          "price": {
+            "month": "39",
+            "year": "34.32"
+          },
+          "unit": "/月",
+          "origPrice": {
+            "year": "39"
+          },
+          "priceNote": {
+            "month": "按月计费",
+            "year": "按年计费"
+          },
+          "badge": {
+            "month": "首月立减 4.68元",
+            "year": "立减 56.16元"
+          },
+          "headline": {
+            "month": "41 亿 Credits",
+            "year": "492 亿 Credits"
+          },
+          "headlineSub": {
+            "month": "套餐月总量",
+            "year": "套餐年总量"
+          },
+          "checks": [
+            {
+              "text": "支持 V2.5 全系模型（文本模型 / 全模态 / 语音）",
+              "on": true
+            },
+            {
+              "text": "支持主流编程框架 OpenClaw / Codex / MiMo Claw 等",
+              "on": true
+            },
+            {
+              "text": "TTS 模型免费，限时免费使用",
+              "on": true
+            },
+            {
+              "text": "夜间 0.8x 消耗，00:00—08:00（UTC+8）",
+              "on": true
+            },
+            {
+              "text": "畅快使用，无额度限制 · 无 5 小时限额",
+              "on": true
+            }
+          ]
+        },
+        {
+          "name": "Standard",
+          "tagline": "日常办公",
+          "price": {
+            "month": "99",
+            "year": "87.12"
+          },
+          "unit": "/月",
+          "origPrice": {
+            "year": "99"
+          },
+          "priceNote": {
+            "month": "按月计费",
+            "year": "按年计费"
+          },
+          "badge": {
+            "month": "首月立减 11.88元",
+            "year": "立减 142.56元"
+          },
+          "headline": {
+            "month": "110 亿 Credits",
+            "year": "1320 亿 Credits"
+          },
+          "headlineSub": "= 2.7 x Lite",
+          "checks": [
+            {
+              "text": "支持 V2.5 全系模型（文本模型 / 全模态 / 语音）",
+              "on": true
+            },
+            {
+              "text": "支持主流编程框架 OpenClaw / Codex / MiMo Claw 等",
+              "on": true
+            },
+            {
+              "text": "TTS 模型免费，限时免费使用",
+              "on": true
+            },
+            {
+              "text": "夜间 0.8x 消耗，00:00—08:00（UTC+8）",
+              "on": true
+            },
+            {
+              "text": "畅快使用，无额度限制 · 无 5 小时限额",
+              "on": true
+            }
+          ]
+        },
+        {
+          "name": "Pro",
+          "tagline": "专业开发",
+          "price": {
+            "month": "329",
+            "year": "289.52"
+          },
+          "unit": "/月",
+          "origPrice": {
+            "year": "329"
+          },
+          "priceNote": {
+            "month": "按月计费",
+            "year": "按年计费"
+          },
+          "badge": {
+            "month": "首月立减 39.48元",
+            "year": "立减 473.76元"
+          },
+          "headline": {
+            "month": "380 亿 Credits",
+            "year": "4560 亿 Credits"
+          },
+          "headlineSub": "= 9.3 x Lite",
+          "checks": [
+            {
+              "text": "支持 V2.5 全系模型（文本模型 / 全模态 / 语音）",
+              "on": true
+            },
+            {
+              "text": "支持主流编程框架 OpenClaw / Codex / MiMo Claw 等",
+              "on": true
+            },
+            {
+              "text": "TTS 模型免费，限时免费使用",
+              "on": true
+            },
+            {
+              "text": "夜间 0.8x 消耗，00:00—08:00（UTC+8）",
+              "on": true
+            },
+            {
+              "text": "畅快使用，无额度限制 · 无 5 小时限额",
+              "on": true
+            }
+          ]
+        },
+        {
+          "name": "Max",
+          "tagline": "高强度开发",
+          "price": {
+            "month": "659",
+            "year": "579.92"
+          },
+          "unit": "/月",
+          "origPrice": {
+            "year": "659"
+          },
+          "priceNote": {
+            "month": "按月计费",
+            "year": "按年计费"
+          },
+          "badge": {
+            "month": "首月立减 79.08元",
+            "year": "立减 948.96元"
+          },
+          "headline": {
+            "month": "820 亿 Credits",
+            "year": "9840 亿 Credits"
+          },
+          "headlineSub": "= 20 x Lite",
+          "checks": [
+            {
+              "text": "支持 V2.5 全系模型（文本模型 / 全模态 / 语音）",
+              "on": true
+            },
+            {
+              "text": "支持主流编程框架 OpenClaw / Codex / MiMo Claw 等",
+              "on": true
+            },
+            {
+              "text": "TTS 模型免费，限时免费使用",
+              "on": true
+            },
+            {
+              "text": "夜间 0.8x 消耗，00:00—08:00（UTC+8）",
+              "on": true
+            },
+            {
+              "text": "畅快使用，无额度限制 · 无 5 小时限额",
+              "on": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "阿里千问",
+      "cat": "token",
+      "link": "https://platform.qianwenai.com/pricing/token-plan",
+      "note": "Token Plan 个人版：按 Credits 计量，7 天固定窗口限额；支持 qwen3.8 等多模态模型与 Harness 工具",
+      "cur": "¥",
+      "unit": "",
+      "billing": [
+        {
+          "id": "month",
+          "label": "月包",
+          "sub": "月付"
+        },
+        {
+          "id": "quarter",
+          "label": "季包",
+          "sub": "季付"
+        },
+        {
+          "id": "year",
+          "label": "年包",
+          "sub": "年付"
+        }
+      ],
+      "plans": [
+        {
+          "name": "Lite 套餐",
+          "price": {
+            "month": "39.00",
+            "quarter": "110.00",
+            "year": "420.00"
+          },
+          "origPrice": {
+            "month": "60.00/月",
+            "quarter": "180.00/季",
+            "year": "720.00/年"
+          },
+          "headline": "2,500 Credits / 7天",
+          "checks": [
+            {
+              "text": "支持文本、视觉等多模态模型",
+              "on": true
+            },
+            {
+              "text": "支持联网搜索、知识检索等 harness 工具",
+              "on": true
+            },
+            {
+              "text": "可同时支持 1~2 个 Agent 并发运行",
+              "on": true
+            }
+          ]
+        },
+        {
+          "name": "Standard 套餐",
+          "badge": "Hot",
+          "price": {
+            "month": "139.00",
+            "quarter": "396.00",
+            "year": "1510.00"
+          },
+          "origPrice": {
+            "month": "180.00/月",
+            "quarter": "540.00/季",
+            "year": "2160.00/年"
+          },
+          "headline": "10,000 Credits / 7天",
+          "checks": [
+            {
+              "text": "4 倍于 Lite 套餐用量",
+              "on": true
+            },
+            {
+              "text": "享受 Lite 套餐的所有权益",
+              "on": true
+            },
+            {
+              "text": "可同时支持 3~4 个 Agent 并发运行",
+              "on": true
+            }
+          ]
+        },
+        {
+          "name": "Pro 套餐",
+          "price": {
+            "month": "499.00",
+            "quarter": "1420.00",
+            "year": "5600.00"
+          },
+          "origPrice": {
+            "month": "600.00/月",
+            "quarter": "1800.00/季",
+            "year": "7200.00/年"
+          },
+          "headline": "40,000 Credits / 7天",
+          "checks": [
+            {
+              "text": "16 倍于 Lite 套餐用量",
+              "on": true
+            },
+            {
+              "text": "享受 Standard 套餐的所有权益",
+              "on": true
+            },
+            {
+              "text": "可同时支持 6~8 个 Agent 并发运行",
+              "on": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "火山方舟 Coding",
+      "cat": "coding",
+      "link": "https://www.volcengine.com/activity/codingplan",
+      "note": "Coding Plan：Doubao / GLM / DeepSeek / Kimi / MiniMax 多模型自由切换，适配 Claude Code、Cursor 等主流编程工具",
+      "cur": "¥",
+      "billing": [
+        {
+          "id": "month",
+          "label": "月包",
+          "sub": "连续包月"
+        },
+        {
+          "id": "quarter",
+          "label": "季包",
+          "sub": "连续包季"
+        },
+        {
+          "id": "year",
+          "label": "年包",
+          "sub": "连续包年"
+        }
+      ],
+      "plans": [
+        {
+          "name": "Lite Plan",
+          "badge": "受邀再享9.5折",
+          "price": {
+            "month": "9.90",
+            "quarter": "59.80",
+            "year": "419.80"
+          },
+          "unit": {
+            "month": "元/月",
+            "quarter": "元/季",
+            "year": "元/年"
+          },
+          "origPrice": {
+            "month": "40.00",
+            "quarter": "120.00",
+            "year": "480.00"
+          },
+          "priceNote": {
+            "month": "刊例价 ®：¥40.00 元/月",
+            "quarter": "刊例价 ®：¥120.00 元/季",
+            "year": "刊例价 ®：¥480.00 元/年"
+          },
+          "headline": "满足个人开发者轻量化需求",
+          "checks": [
+            {
+              "text": "模型：Doubao、GLM、DeepSeek、Kimi、MiniMax 等",
+              "on": true
+            },
+            {
+              "text": "适配：支持自由切换模型，或开启 Auto 模式",
+              "on": true
+            },
+            {
+              "text": "工具：Claude Code、Cursor 等主流编程工具",
+              "on": true
+            }
+          ]
+        },
+        {
+          "name": "Pro Plan",
+          "badge": "最受欢迎",
+          "price": {
+            "month": "49.90",
+            "quarter": "299.80",
+            "year": "2099.80"
+          },
+          "unit": {
+            "month": "元/月",
+            "quarter": "元/季",
+            "year": "元/年"
+          },
+          "origPrice": {
+            "month": "200.00",
+            "quarter": "600.00",
+            "year": "2400.00"
+          },
+          "priceNote": {
+            "month": "刊例价 ®：¥200.00 元/月",
+            "quarter": "刊例价 ®：¥600.00 元/季",
+            "year": "刊例价 ®：¥2400.00 元/年"
+          },
+          "headline": "5 倍于 Lite 套餐的用量",
+          "checks": [
+            {
+              "text": "能力：享受 Lite 套餐的所有能力和权益",
+              "on": true
+            },
+            {
+              "text": "适配：满足高阶用户的大规模编程需求",
+              "on": true
+            },
+            {
+              "text": "升级：用量为 Claude Max 数倍，Lite 套餐 5 倍",
+              "on": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "火山方舟 Agent",
+      "cat": "agent",
+      "link": "https://www.volcengine.com/activity/agentplan",
+      "note": "Agent Plan：Small / Medium / Large / Max 四档，覆盖多模态与 Harness，支持多档额度与联网搜索 Harness",
+      "cur": "¥",
+      "billing": [
+        {
+          "id": "month",
+          "label": "月包",
+          "sub": "连续包月"
+        },
+        {
+          "id": "quarter",
+          "label": "季包",
+          "sub": "连续包季"
+        },
+        {
+          "id": "year",
+          "label": "年包",
+          "sub": "连续包年"
+        }
+      ],
+      "plans": [
+        {
+          "name": "Small",
+          "badge": "限时特惠",
+          "price": {
+            "month": "9.90",
+            "quarter": "59.80",
+            "year": "419.80"
+          },
+          "unit": {
+            "month": "元/月",
+            "quarter": "元/季",
+            "year": "元/年"
+          },
+          "origPrice": {
+            "month": "40.00",
+            "quarter": "120.00",
+            "year": "480.00"
+          },
+          "priceNote": {
+            "month": "刊例价 ®：¥40.00 元/月",
+            "quarter": "刊例价 ®：¥120.00 元/季",
+            "year": "刊例价 ®：¥480.00 元/年"
+          },
+          "headline": "体验版本，仅供测试",
+          "checks": [
+            {
+              "text": "每月 20,000 Agent 燃料值",
+              "on": true
+            },
+            {
+              "text": "主流热门编程模型集合",
+              "on": true
+            },
+            {
+              "text": "Seedream 5.0 lite、向量化模型",
+              "on": true
+            },
+            {
+              "text": "联网搜索专属 Harness 开箱即用",
+              "on": true
+            }
+          ]
+        },
+        {
+          "name": "Medium",
+          "badge": "最受欢迎",
+          "featured": true,
+          "price": {
+            "month": "49.90",
+            "quarter": "299.80",
+            "year": "2099.80"
+          },
+          "unit": {
+            "month": "元/月",
+            "quarter": "元/季",
+            "year": "元/年"
+          },
+          "origPrice": {
+            "month": "200.00",
+            "quarter": "600.00",
+            "year": "2400.00"
+          },
+          "priceNote": {
+            "month": "刊例价 ®：¥200.00 元/月",
+            "quarter": "刊例价 ®：¥600.00 元/季",
+            "year": "刊例价 ®：¥2400.00 元/年"
+          },
+          "headline": "Agent 探索与应用",
+          "checks": [
+            {
+              "text": "日常高频额度 5× Small 用量",
+              "on": true
+            },
+            {
+              "text": "享受 Small 套餐所有权益",
+              "on": true
+            },
+            {
+              "text": "多模态及联网搜索 Harness 升级，支持 Kimi K3",
+              "on": true
+            }
+          ]
+        },
+        {
+          "name": "Large",
+          "badge": {
+            "quarter": "包季优惠",
+            "year": "包季优惠"
+          },
+          "price": {
+            "month": "500.00",
+            "quarter": "1455.00",
+            "year": "5700.00"
+          },
+          "unit": {
+            "month": "元/月",
+            "quarter": "元/季",
+            "year": "元/年"
+          },
+          "origPrice": {
+            "quarter": "1500.00",
+            "year": "6000.00"
+          },
+          "priceNote": {
+            "month": "",
+            "quarter": "刊例价 ®：¥1500.00 元/季",
+            "year": "刊例价 ®：¥6000.00 元/年"
+          },
+          "headline": "多模态 & Harness 深度应用",
+          "checks": [
+            {
+              "text": "复杂重度开发 12.5× Small 用量",
+              "on": true
+            },
+            {
+              "text": "享受 Medium 套餐所有权益",
+              "on": true
+            },
+            {
+              "text": "支持 Seedance 2.0 和 Kimi K3",
+              "on": true
+            },
+            {
+              "text": "高阶多模态及联网搜索 Harness",
+              "on": true
+            }
+          ]
+        },
+        {
+          "name": "Max",
+          "badge": {
+            "quarter": "包季优惠",
+            "year": "包季优惠"
+          },
+          "price": {
+            "month": "1000.00",
+            "quarter": "2910.00",
+            "year": "11400.00"
+          },
+          "unit": {
+            "month": "元/月",
+            "quarter": "元/季",
+            "year": "元/年"
+          },
+          "origPrice": {
+            "quarter": "3000.00",
+            "year": "12000.00"
+          },
+          "priceNote": {
+            "month": "",
+            "quarter": "刊例价 ®：¥3000.00 元/季",
+            "year": "刊例价 ®：¥12000.00 元/年"
+          },
+          "headline": "多模态 & Harness 生产级应用",
+          "checks": [
+            {
+              "text": "顶配旗舰额度 25× Small 用量",
+              "on": true
+            },
+            {
+              "text": "享受 Large 套餐所有权益",
+              "on": true
+            },
+            {
+              "text": "支持 Seedance 2.0 和 Kimi K3",
+              "on": true
+            },
+            {
+              "text": "极致多模态及联网搜索 Harness",
+              "on": true
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
