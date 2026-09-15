@@ -263,12 +263,47 @@
     .icon-btn:hover { border-color: var(--primary-line); color: var(--primary); }
     .seg-btn:hover { color: var(--text); }
     .nav-link:hover { color: var(--text); }
+    .pm-cat:hover { color: var(--text); }
+    .pm-item:hover { background: var(--raised); border-color: var(--border); }
     .sub-card:hover { transform: translateY(-4px); border-color: var(--border-hover); box-shadow: var(--shadow-lift); }
     .sub-card-featured:hover { border-color: var(--primary); box-shadow: 0 0 0 1px var(--primary), 0 30px 70px -28px var(--primary-glow); }
   }
   /* 触屏点按反馈：替代 hover 作为即时反馈 */
   .icon-btn:active { background: var(--active); }
   .nav-link:active { color: var(--text); }
+
+  /* ===== 一级菜单「提供商」：点击不跳转，展开顶栏下方的整幅面板 ===== */
+  /* 导航项为 <button>：清掉浏览器默认外观，其余视觉沿用 .nav-link */
+  button.nav-link { border: 0; background: transparent; cursor: pointer; font-family: inherit; text-align: left; }
+  /* 左栏二级菜单：结构与 .seg-btn 同源，但为竖排大字 */
+  .pm-cat {
+    display: block; width: 100%; text-align: left; cursor: pointer; font-family: inherit;
+    padding: 9px 14px; border: 1px solid transparent; border-radius: var(--r-sm);
+    background: transparent; color: var(--muted);
+    font-size: 15px; font-weight: 500; line-height: 1.3;
+    transition: background-color .18s ease, color .18s ease, box-shadow .18s ease, border-color .18s ease;
+  }
+  .pm-cat.active {
+    color: var(--text); font-weight: 600; background: var(--active);
+    box-shadow: inset 0 0 0 1px var(--border-hover);
+  }
+  body[data-theme="light"] .pm-cat.active { box-shadow: inset 0 0 0 1px var(--border); }
+  /* 右栏条目：厂商入口，整行可点，新标签打开官方站点 */
+  .pm-item {
+    display: flex; align-items: center; gap: 12px; padding: 9px 12px;
+    border: 1px solid transparent; border-radius: var(--r-sm); text-decoration: none;
+    transition: background-color .18s ease, border-color .18s ease;
+  }
+  /* 厂商标记：品牌色淡底 + 同色字母，无需额外图标资源 */
+  .pm-tile {
+    display: inline-flex; flex: none; align-items: center; justify-content: center;
+    height: 30px; width: 30px; border-radius: 9px;
+    font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 11px; font-weight: 700;
+  }
+  /* 面板自身滚动：细滚动条与全站一致 */
+  #providerPanel::-webkit-scrollbar { width: 10px; }
+  #providerPanel::-webkit-scrollbar-thumb { background: var(--border-hover); border-radius: 999px; }
+  #providerPanel::-webkit-scrollbar-track { background: transparent; }
 
 </style>
 </head>
@@ -289,6 +324,8 @@
       <nav id="mainNav" class="absolute left-0 right-0 top-full z-50 mt-2 hidden flex-col gap-1 rounded-2xl border border-line bg-surface/95 p-2 shadow-2xl shadow-black/40 backdrop-blur-md sm:static sm:mt-0 sm:flex sm:flex-row sm:items-center sm:gap-1 sm:rounded-xl sm:border-line/70 sm:bg-raised/60 sm:p-1 sm:shadow-none sm:backdrop-blur-none">
         <a href="#pricing" id="navPricing" class="nav-link">API 价格</a>
         <a href="#subscribe" id="navSubs" class="nav-link">订阅套餐</a>
+        <!-- 一级菜单「提供商」：不跳转路由，点击展开下方整幅面板 -->
+        <button type="button" id="navProviders" class="nav-link" aria-haspopup="dialog" aria-controls="providerModal" aria-expanded="false">提供商</button>
       </nav>
       <button id="btnTheme" title="切换明亮 / 暗黑主题" aria-label="切换主题"
         class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-line/70 bg-raised/60 icon-btn text-muted transition-colors duration-200">
@@ -313,6 +350,26 @@
     </div>
   </div>
 </header>
+
+<!-- ===== 提供商面板：一级菜单「提供商」展开的整幅面板（不跳转路由） =====
+     必须位于 <header> 之外：header 的 backdrop-blur 会成为 fixed 后代的包含块；
+     z-[60] > header 的 z-50，保证面板整体压在最上层，四角圆角不被顶栏裁切 -->
+<div id="providerModal" class="fixed inset-0 z-[60] hidden" aria-hidden="true">
+  <div id="providerBackdrop" class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+  <div id="providerPanel" role="dialog" aria-modal="true" aria-label="提供商" tabindex="-1"
+    class="absolute left-1/2 w-[min(92%,1760px)] -translate-x-1/2 overflow-y-auto rounded-2xl border border-line bg-surface/95 px-5 py-4 shadow-2xl shadow-black/50 backdrop-blur-md outline-none sm:px-8">
+    <div class="grid grid-cols-1 gap-6 md:grid-cols-[188px_1fr] md:gap-10">
+      <!-- 左栏：二级菜单（入口类型） -->
+      <aside>
+        <nav id="pmCats" class="flex flex-wrap gap-1 md:flex-col md:flex-nowrap"></nav>
+      </aside>
+      <!-- 右栏：按左栏二级菜单展示对应入口（当前项由左栏选中态表达） -->
+      <section class="min-w-0">
+        <div id="pmBody"></div>
+      </section>
+    </div>
+  </div>
+</div>
 
 <main class="mx-auto w-[min(92%,1760px)] pb-12">
 
@@ -1582,6 +1639,137 @@ document.getElementById('subSections').addEventListener('click', e => {
   renderSubs(); // 重新渲染并保持 subCat 筛选
 });
 
+/* =========================================================================
+   一级菜单「提供商」：点击不跳转路由，展开顶栏下方的整幅面板
+   -------------------------------------------------------------------------
+   1. 左栏二级菜单 = 官网首页 / 对话窗口 / 开放平台 / 编码代理 / 智能办公，右栏列出各厂商对应类型的入口；
+   2. 三类官方地址写在 PROVIDERS[].links，编码代理 / 智能办公写在 PROVIDERS[].code / .office（无则不占位）；
+   3. 条目在新标签打开官方站点，本站不承担二次跳转；
+   4. Esc / 点遮罩 / 点条目 / 切路由均收起，展开期间锁定页面滚动，面板内部独立滚动。
+   ========================================================================= */
+// 站内已收录的 7 家厂商：三类官方入口地址 + 官方编码代理 / 智能办公产品（没有的留空，不占位）
+const PROVIDERS = [
+  { abbr: 'DS', name: 'DeepSeek', cn: '深度求索', color: '--vendor-deepseek',
+    links: { home: 'https://www.deepseek.com/',       chat: 'https://chat.deepseek.com/',       platform: 'https://platform.deepseek.com/' },
+    code:  { name: 'DeepSeek Harness', url: 'https://www.deepseek.com/harness/' } },
+  { abbr: 'K',  name: 'Kimi',     cn: '月之暗面', color: '--vendor-kimi',
+    links: { home: 'https://www.moonshot.cn/',        chat: 'https://www.kimi.com/',            platform: 'https://platform.kimi.com/console/account' },
+    code:  { name: 'Kimi Code', url: 'https://www.kimi.com/code' },
+    office:{ name: 'Kimi Work', url: 'https://www.kimi.com/products/kimi-work' } },
+  { abbr: 'GLM',name: 'GLM',      cn: '智谱 AI',  color: '--vendor-glm',
+    links: { home: 'https://bigmodel.cn/',            chat: 'https://chatglm.cn/',              platform: 'https://bigmodel.cn/console/overview' },
+    code:  { name: 'ZCode', url: 'https://zcode.z.ai/cn' } },
+  { abbr: 'MM', name: 'MiniMax',  cn: '稀宇科技', color: '--vendor-minimax',
+    links: { home: 'https://www.minimaxi.com/',       chat: 'https://chat.minimaxi.com/',       platform: 'https://platform.minimax.cn/console/access' } },
+  { abbr: 'Mi', name: 'MiMo',     cn: '小米',     color: '--vendor-mimo',
+    links: { home: 'https://mimo.mi.com/',            chat: 'https://aistudio.xiaomimimo.com/', platform: 'https://platform.xiaomimimo.com/console' },
+    code:  { name: 'MiMo Code', url: 'https://mimo.xiaomi.com/mimocode' },
+    office:{ name: 'MiMo Desktop', url: 'https://mimo.xiaomimimo.com/desktop/invite/' } },
+  { abbr: 'Q',  name: 'Qwen',     cn: '阿里千问', color: '--vendor-qwen',
+    links: { home: 'https://www.qianwenai.com/',      chat: 'https://chat.qwen.ai/',            platform: 'https://platform.qianwenai.com/' },
+    code:  { name: 'Qoder', url: 'https://www.qianwenai.com/agents/qoder' },
+    office:{ name: '千问办公', url: 'https://www.qianwenai.com/agents/qwenwork' } },
+  { abbr: 'DB', name: 'Doubao',   cn: '火山方舟', color: '--vendor-doubao',
+    links: { home: 'https://www.volcengine.com/',     chat: 'https://www.doubao.com/chat/',     platform: 'https://console.volcengine.com/ark' },
+    code:  { name: 'Trae', url: 'https://www.trae.cn/' },
+    office:{ name: '豆包工作', url: 'https://www.doubao.com/work' } }
+];
+// 二级菜单 = 入口类型；右栏按所选类型展示同一批厂商的对应地址
+const PM_CATS = [
+  { id: 'home',     label: '官网首页' },
+  { id: 'chat',     label: '对话窗口' },
+  { id: 'platform', label: '开放平台' },
+  { id: 'code',     label: '编码代理' },
+  { id: 'office',   label: '智能办公' }
+];
+let pmCat = 'home';
+let pmOpen = false;
+
+const providerModal = document.getElementById('providerModal');
+const providerPanel = document.getElementById('providerPanel');
+const providerBackdrop = document.getElementById('providerBackdrop');
+const pmCats = document.getElementById('pmCats');
+const pmBody = document.getElementById('pmBody');
+const navProviders = document.getElementById('navProviders');
+const headerEl = document.querySelector('header');
+
+const pmTile = (text, color) =>
+  `<span class="pm-tile" style="background:${toRgba(color, .16)};color:${color}">${text}</span>`;
+// 展示用地址：去掉协议与结尾斜杠（保留路径，便于区分同域名的官网 / 控制台）
+const pmAddr = url => String(url).replace(/^https?:\/\//, '').replace(/\/+$/, '');
+const PM_ARROW = '<svg class="h-3.5 w-3.5 flex-none text-faint" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7M9 7h8v8"/></svg>';
+
+// 当前二级菜单下某厂商的入口：产品型分类（编码代理 / 智能办公）展示产品名，其余展示厂商中文名；缺项返回 null
+function pmEntry(p) {
+  if (pmCat === 'code' || pmCat === 'office') {
+    const prod = p[pmCat];
+    return prod ? { url: prod.url, sub: prod.name } : null;
+  }
+  const url = p.links[pmCat];
+  return url ? { url, sub: p.cn } : null;
+}
+
+// 厂商入口：厂商标记 + 名称 + 副标题（产品名 / 中文名 · 目标地址），整行在新标签打开
+function pmLinksHtml() {
+  return `<div class="grid gap-1.5 sm:grid-cols-2 xl:grid-cols-3">${PROVIDERS.map(p => {
+    const e = pmEntry(p);
+    if (!e) return ''; // 无官方编码代理的厂商不占位
+    return `
+    <a class="pm-item" href="${e.url}" target="_blank" rel="noopener" title="${e.url}">
+      ${pmTile(p.abbr, cssVar(p.color, '#94A3B8'))}
+      <span class="min-w-0 flex-1">
+        <span class="block truncate text-[14px] font-semibold text-ink">${p.name}</span>
+        <span class="block break-words text-[11.5px] leading-snug text-faint">${e.sub} · ${pmAddr(e.url)}</span>
+      </span>
+      ${PM_ARROW}
+    </a>`;
+  }).join('')}</div>`;
+}
+
+function renderProviderPanel() {
+  pmCats.innerHTML = PM_CATS.map(c =>
+    `<button type="button" class="pm-cat${c.id === pmCat ? ' active' : ''}" data-cat="${c.id}">${c.label}</button>`).join('');
+  pmCats.querySelectorAll('button').forEach(btn => btn.onclick = () => {
+    pmCat = btn.dataset.cat;
+    renderProviderPanel();
+  });
+  const info = PM_CATS.find(c => c.id === pmCat) || PM_CATS[0];
+  providerPanel.setAttribute('aria-label', info.label); // 菜单文字在左栏，面板只交代无障碍名称
+  pmBody.innerHTML = pmLinksHtml();
+}
+
+// 面板压在顶栏之上，但视觉上仍从顶栏下沿留 8px 间隙展开：四角圆角完整可见
+const PM_GAP = 8;
+function syncProviderPanel() {
+  const top = headerEl.offsetHeight + PM_GAP;
+  providerPanel.style.top = top + 'px';
+  providerPanel.style.maxHeight = `calc(100vh - ${top + PM_GAP}px)`;
+}
+
+function setProviderModal(open) {
+  pmOpen = open;
+  providerModal.classList.toggle('hidden', !open);
+  providerModal.setAttribute('aria-hidden', open ? 'false' : 'true');
+  navProviders.classList.toggle('active', open);
+  navProviders.setAttribute('aria-expanded', open ? 'true' : 'false');
+  document.body.style.overflow = open ? 'hidden' : ''; // 展开时锁定页面滚动
+  if (open) {
+    renderProviderPanel();
+    syncProviderPanel();
+    providerPanel.scrollTop = 0;
+    providerPanel.focus();
+  } else if (providerModal.contains(document.activeElement)) {
+    navProviders.focus(); // 收起时焦点交还触发按钮，避免焦点留在 aria-hidden 区域
+  }
+}
+
+navProviders.onclick = () => { setMenu(false); setProviderModal(!pmOpen); };
+providerBackdrop.onclick = () => setProviderModal(false);
+// 条目在新标签打开后收起面板，回到页面即回到原处
+pmBody.addEventListener('click', e => { if (e.target.closest('a')) setProviderModal(false); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') setProviderModal(false); });
+window.addEventListener('resize', () => { if (pmOpen) syncProviderPanel(); });
+
 // 视图路由：首页 / API 价格 / 订阅套餐（hash 直达，支持浏览器前进后退）
 const viewHome = document.getElementById('view-home');
 const viewPricing = document.getElementById('view-pricing');
@@ -1589,6 +1777,7 @@ const viewSubs = document.getElementById('view-subscribe');
 const navPricing = document.getElementById('navPricing');
 const navSubs = document.getElementById('navSubs');
 function setView(v) {
+  setProviderModal(false); // 路由切换时收起提供商面板，避免与视图叠加
   navPricing.classList.toggle('active', v === 'pricing');
   navSubs.classList.toggle('active', v === 'subs');
   viewHome.style.display = v === 'home' ? '' : 'none';
@@ -1680,6 +1869,7 @@ function applyData(d) {
   }
   render();       // 全部价格图表（含汇总模块）
   renderSubs();   // 订阅套餐卡片
+  if (pmOpen) renderProviderPanel(); // 面板展开时同步最新模型 / 套餐
   requestAnimationFrame(resizeAll);
 }
 
